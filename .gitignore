@@ -1,0 +1,5 @@
+/configure
+/config.status
+Makefile
+*.o
+libddtsa.a
