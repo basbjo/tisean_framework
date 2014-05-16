@@ -29,7 +29,6 @@
 #define _TISEAN_CEC_H
 
 /* These are the codes for the routines subtree */
-#define RESCALE_DATA_ZERO_INTERVAL 11
 #define CHECK_ALLOC_NOT_ENOUGH_MEMORY 12
 #define CHECK_OPTION_NOT_UNSIGNED 13
 #define CHECK_OPTION_NOT_INTEGER 14
