@@ -18,6 +18,9 @@
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /*Author: Rainer Hegger. Last modified May 16, 2014*/
+/*Changes by Bjoern Bastian:
+    2014/05/16: option -r to set reference binning range
+*/
 
 #include <math.h>
 #include <limits.h>
@@ -26,9 +29,10 @@
 #include <string.h>
 #include "routines/tsa.h"
 
-#define WID_STR "Creates a histogram of a onedimensional dataset"
+#define WID_STR "Creates a histogram of a onedimensional dataset [2014/05/16: option -r added]"
 
 unsigned long length=ULONG_MAX;
+unsigned long minmaxlength=3;
 unsigned long base=50;
 unsigned long exclude=0;
 unsigned int column=1;
@@ -37,6 +41,7 @@ double size;
 char my_stdout=1,gotsize=0,density=0;
 char *outfile=NULL;
 char *infile=NULL;
+char *minmaxfile=NULL;
 
 void show_options(char *progname)
 {
@@ -52,6 +57,7 @@ void show_options(char *progname)
   fprintf(stderr,"\t-b # of intervals [default %ld]\n",base);
   fprintf(stderr,"\t-D output densities not relative frequencies"
 	  " [default not set]\n");
+  fprintf(stderr,"\t-r reference file for binning range [optional]\n");
   fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
 	  " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
@@ -77,6 +83,10 @@ void scan_options(int n,char **str)
     sscanf(out,"%u",&verbosity);
   if ((out=check_option(str,n,'D','n')) != NULL)
     density=1;
+  if ((out=check_option(str,n,'r','o')) != NULL) {
+    if (strlen(out) > 0)
+      minmaxfile=out;
+  }
   if ((out=check_option(str,n,'o','o')) != NULL) {
     my_stdout=0;
     if (strlen(out) > 0)
@@ -89,11 +99,11 @@ int main(int argc,char **argv)
   char stdi=0;
   unsigned long i,j;
   double x,norm,size=1.0,size2=1.0;
-  double min,interval;
-  double *series;
+  double min,interval,refmin,refinterval;
+  double *series,*minmax;
   double average,var;
   long *box;
-  FILE *fout;
+  FILE *fout,*test;
 
   if (scan_help(argc,argv))
     show_options(argv[0]);
@@ -122,9 +132,33 @@ int main(int argc,char **argv)
   if (!my_stdout)
     test_outfile(outfile);
 
+  /*Get reference range for option '-r'*/
+  if (minmaxfile != NULL) {
+    test=fopen(minmaxfile,"r");
+    if (test == NULL) {
+      fprintf(stderr,"File %s not found!\n",minmaxfile);
+      exit(HISTOGRAM__MINMAX_MISSING_OR_WRONG_FORMAT);
+    }
+    if (verbosity&VER_INPUT) {
+      fprintf(stderr,"Get reference range from %s, reading column %u\n",
+          minmaxfile,column);
+    }
+
+    minmax=(double*)get_series(minmaxfile,&minmaxlength,0,column,verbosity);
+    if(minmaxlength!=2) {
+      fprintf(stderr,"Wrong format in file '%s'. Needs exactly two lines"
+          " with minima and maxima for each column.\n",minmaxfile);
+      exit(HISTOGRAM__MINMAX_MISSING_OR_WRONG_FORMAT);
+    }
+    refmin=minmax[0];
+    refinterval=minmax[1]-refmin;
+  }
+
+  /*Read data*/
   series=(double*)get_series(infile,&length,exclude,column,verbosity);
   variance(series,length,&average,&var);
 
+  /*Shift data to zero minimum*/
   min=interval=series[0];
   for (i=1;i<length;i++) {
     if (series[i] < min) min=series[i];

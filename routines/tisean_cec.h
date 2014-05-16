@@ -43,5 +43,6 @@
 #define CHECK_OPTION_NOT_THREE 25
 
 /* These are the codes for the main routines */
+#define HISTOGRAM__MINMAX_MISSING_OR_WRONG_FORMAT 90
 
 #endif
