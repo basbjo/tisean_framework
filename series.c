@@ -27,10 +27,10 @@
 
 #define WID_STR "Estimates the autocorrelations of a data set"
 
-char *format,*outfile=NULL,stout=1;
+unsigned long length=ULONG_MAX,exclude=0;
 unsigned int column=1;
 unsigned int verbosity=0xff;
-unsigned length=ULONG_MAX,exclude=0;
+char *outfile=NULL,stout=1;
 double *array;
 double av,var;
 char *infile=NULL;
@@ -130,6 +130,7 @@ int main(int argc,char** argv)
       fprintf(stderr,"Opened %s for writing\n",outfile);
     fprintf(fout,"# average=%e\n",av);
     fprintf(fout,"# standard deviation=%e\n",var);
+    fclose(fout);
   }
   else {
     if (verbosity&VER_INPUT)
@@ -137,8 +138,6 @@ int main(int argc,char** argv)
     fprintf(stdout,"# average=%e\n",av);
     fprintf(stdout,"# standard deviation=%e\n",var);
   }
-  if (!stout)
-    fclose(fout);
 
   if (outfile != NULL)
     free(outfile);

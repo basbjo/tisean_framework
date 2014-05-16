@@ -28,9 +28,10 @@
 #define WID_STR "Estimates the crosscorrelations of two data sets\n\t\
 given as two columns of one file."
 
-char *columns=NULL,*outfile=NULL,stout=1;
 unsigned long length=ULONG_MAX,exclude=0;
 unsigned int verbosity=0xff;
+char *columns=NULL;
+char *outfile=NULL,stout=1;
 double *array1,*array2;
 char *infile=NULL;
 
@@ -153,6 +154,7 @@ int main(int argc,char** argv)
     fprintf(fout,"# standard deviation of first comp.=%e\n",var1);
     fprintf(fout,"# average of sec. comp.=%e\n",av2);
     fprintf(fout,"# standard deviation of sec. comp.=%e\n",var2);
+    fclose(fout);
   }
   else {
     if (verbosity&VER_INPUT)
@@ -162,9 +164,6 @@ int main(int argc,char** argv)
     fprintf(stdout,"# average of sec. comp.=%e\n",av2);
     fprintf(stdout,"# standard deviation of sec. comp.=%e\n",var2);
   }
-
-  if (!stout)
-    fclose(fout);
 
   return 0;
 }

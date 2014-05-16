@@ -20,9 +20,9 @@
  * Adapted by Bjoern Bastian. Last modified: May 16, 2014 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <limits.h>
 #include <math.h>
+#include <limits.h>
+#include <string.h>
 #include "routines/tsa.h"
 
 #define WID_STR "Rescales the data"
@@ -30,11 +30,11 @@
 unsigned long length=ULONG_MAX,exclude=0;
 unsigned int dim=1;
 unsigned int verbosity=0xff;
-char *column=NULL;
-char *outfile=NULL,stdo=1,dimset=0;
-char *infile=NULL;
+char *columns=NULL,dimset=0;
+char *outfile=NULL,stout=1;
 double **series;
 double xmin=0.0,xmax=1.0;
+char *infile=NULL;
 
 void show_options(char *progname)
 {
@@ -61,40 +61,40 @@ void show_options(char *progname)
   exit(0);
 }
 
-void scan_options(int n,char **in)
+void scan_options(int argc,char **argv)
 {
   char *out;
 
-  if ((out=check_option(in,n,'l','u')) != NULL)
+  if ((out=check_option(argv,argc,'l','u')) != NULL)
     sscanf(out,"%lu",&length);
-  if ((out=check_option(in,n,'x','u')) != NULL)
+  if ((out=check_option(argv,argc,'x','u')) != NULL)
     sscanf(out,"%lu",&exclude);
-  if ((out=check_option(in,n,'m','u')) != NULL) {
+  if ((out=check_option(argv,argc,'m','u')) != NULL) {
     sscanf(out,"%u",&dim);
     dimset=1;
   }
-  if ((out=check_option(in,n,'c','s')) != NULL)
-    column=out;
-  if ((out=check_option(in,n,'V','u')) != NULL)
+  if ((out=check_option(argv,argc,'c','s')) != NULL)
+    columns=out;
+  if ((out=check_option(argv,argc,'V','u')) != NULL)
     sscanf(out,"%u",&verbosity);
-  if ((out=check_option(in,n,'z','f')) != NULL)
+  if ((out=check_option(argv,argc,'z','f')) != NULL)
     sscanf(out,"%lf",&xmin);
-  if ((out=check_option(in,n,'Z','f')) != NULL)
+  if ((out=check_option(argv,argc,'Z','f')) != NULL)
     sscanf(out,"%lf",&xmax);
-  if ((out=check_option(in,n,'o','o')) != NULL) {
-    stdo=0;
+  if ((out=check_option(argv,argc,'o','o')) != NULL) {
+    stout=0;
     if (strlen(out) > 0)
       outfile=out;
   }
 }
 
-int main(int argc,char **argv)
+int main(int argc,char** argv)
 {
   char stdi=0;
-  FILE *file;
+  long i,n;
+  FILE *fout=NULL;
   double min,max;
   double av,varianz;
-  long i,n;
 
   if (scan_help(argc,argv))
     show_options(argv[0]);
@@ -120,7 +120,7 @@ int main(int argc,char **argv)
       strcpy(outfile,"stdin.res");
     }
   }
-  if (!stdo)
+  if (!stout)
     test_outfile(outfile);
 
   if (xmin >= xmax) {
@@ -129,18 +129,30 @@ int main(int argc,char **argv)
     exit(RESCALE__WRONG_INTERVAL);
   }
 
-  if (column == NULL)
+  if (columns == NULL)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,"",dimset,
                     verbosity);
   else
-    series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
+    series=(double**)get_multi_series(infile,&length,exclude,&dim,columns,
                     dimset,verbosity);
 
   for (n=0;n<dim;n++) {
     variance(series[n],length,&av,&varianz);
   }
 
-  if (stdo) {
+  if (!stout) {
+    fout=fopen(outfile,"w");
+    if (verbosity&VER_INPUT)
+      fprintf(stderr,"Opened %s for writing\n",outfile);
+    for (i=0;i<length;i++) {
+      fprintf(fout,"%e",series[0][i]);
+      for (n=1;n<dim;n++)
+    fprintf(fout," %e",series[n][i]);
+      fprintf(fout,"\n");
+    }
+    fclose(fout);
+  }
+  else {
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
     for (i=0;i<length;i++) {
@@ -149,18 +161,6 @@ int main(int argc,char **argv)
     fprintf(stdout," %e",series[n][i]);
       fprintf(stdout,"\n");
     }
-  }
-  else {
-    file=fopen(outfile,"w");
-    if (verbosity&VER_INPUT)
-      fprintf(stderr,"Opened %s for writing\n",outfile);
-    for (i=0;i<length;i++) {
-      fprintf(file,"%e",series[0][i]);
-      for (n=1;n<dim;n++)
-    fprintf(file," %e",series[n][i]);
-      fprintf(file,"\n");
-    }
-    fclose(file);
   }
 
   return 0;
