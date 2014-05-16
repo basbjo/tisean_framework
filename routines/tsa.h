@@ -54,6 +54,9 @@ extern void check_alloc(void *);
 extern char* myfgets(char *,int *,FILE *,unsigned int);
 extern void what_i_do(char *, char *);
 
+/* routines from eigen.c */
+extern void eigen(double**,unsigned long,double*);
+
 #ifdef __cplusplus
 }
 #endif
