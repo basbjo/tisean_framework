@@ -40,7 +40,6 @@
 #define GET_SERIES_NO_LINES 20
 #define GET_MULTI_SERIES_WRONG_TYPE_OF_C 21
 #define GET_MULTI_SERIES_NO_LINES 22
-#define VARIANCE_VAR_EQ_ZERO 23
 #define CHECK_OPTION_NOT_THREE 25
 
 /* These are the codes for the main routines */

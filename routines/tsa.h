@@ -46,7 +46,6 @@ extern double *get_series(char *,unsigned long *,unsigned long,
 extern double **get_multi_series(char *,unsigned long *,unsigned long,
 				 unsigned int *,char *,char,unsigned int);
 extern void rescale_data(double *,unsigned long,double *,double *);
-extern void variance(double *,unsigned long,double *,double *);
 extern char* search_datafile(int, char**,unsigned int*,unsigned int);
 extern char* check_option(char**,int,int,int);
 extern void test_outfile(char*);
