@@ -163,5 +163,11 @@ int main(int argc,char** argv)
     }
   }
 
+  if (outfile != NULL)
+    free(outfile);
+  if (infile != NULL)
+    free(infile);
+  free(series);
+
   return 0;
 }

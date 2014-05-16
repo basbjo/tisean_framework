@@ -165,5 +165,12 @@ int main(int argc,char** argv)
     fprintf(stdout,"# standard deviation of sec. comp.=%e\n",var2);
   }
 
+  if (outfile != NULL)
+    free(outfile);
+  if (infile != NULL)
+    free(infile);
+  free(array1);
+  free(array2);
+
   return 0;
 }
