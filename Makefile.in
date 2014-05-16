@@ -13,7 +13,7 @@ INSTALL = @INSTALL@
 LOADLIBS = routines/libddtsa.a -lm
 
 # list of executables we want to produce
-   ALL =   corr xcor rescale
+   ALL =   series two_series multi_series
 
 all: $(ALL)
 
