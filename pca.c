@@ -17,7 +17,8 @@
  *   along with TISEAN; if not, write to the Free Software
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-/*Author: Rainer Hegger Last modified: Jul 26, 2004 */
+/*Author: Rainer Hegger Last modified: Jul 26, 2004
+ * Adapted by Bjoern Bastian. Last modified: May 16, 2014 */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -25,10 +26,10 @@
 #include <limits.h>
 #include "routines/tsa.h"
 
-#define WID_STR "Performs a global PCA"
+#define WID_STR "Performs a global PCA [Modified May 16, 2014: option -n added!]"
 
 unsigned long LENGTH=ULONG_MAX,exclude=0;
-unsigned int DIM=2,EMB=1,dimemb,LDIM=2,DELAY=1;
+unsigned int DIM=2,EMB=1,dimemb,LDIM=2,DELAY=1,DDOF=0;
 unsigned int verbosity=0xff;
 char *outfile=NULL,stout=1,dim_set=0;
 unsigned int what_to_write=0,write_values=1,write_vectors=0;
@@ -52,6 +53,7 @@ void show_options(char *progname)
   fprintf(stderr,"\t-m columns,embedding dim. to use [Default: 2,1]\n");
   fprintf(stderr,"\t-d delay to use [Default: 1]\n");
   fprintf(stderr,"\t-q projection dimension [Default: no projection]\n");
+  fprintf(stderr,"\t-n # variances are normalized by (N - #) [Default: 0]\n");
   fprintf(stderr,"\t-W # what to write: [Default: 0]\n"
 	  "\t\t0 write eigenvalues only\n"
 	  "\t\t1 write eigenvectors\n"
@@ -86,6 +88,8 @@ void scan_options(int n,char **in)
     sscanf(out,"%u",&LDIM);
     projection_set=1;
   }
+  if ((out=check_option(in,n,'n','u')) != NULL)
+    sscanf(out,"%u",&DDOF);
   if ((out=check_option(in,n,'V','u')) != NULL)
     sscanf(out,"%u",&verbosity);
   if ((out=check_option(in,n,'W','u')) != NULL) {
@@ -152,7 +156,7 @@ void make_pca(double *av)
       mat[i][j]=0.0;
       for (k=(EMB-1)*DELAY;k<LENGTH;k++)
 	mat[i][j] += series[i1][k-i2]*series[j1][k-j2];
-      mat[j][i]=(mat[i][j] /= (double)(LENGTH-(EMB-1)*DELAY));
+      mat[j][i]=(mat[i][j] /= (double)(LENGTH-DDOF-(EMB-1)*DELAY));
     }
   }
 
@@ -319,7 +323,7 @@ int main(int argc,char **argv)
   check_alloc(av=(double*)malloc(sizeof(double)*DIM));
   for (j=0;j<DIM;j++) {
     av[j]=rms=0.0;
-    variance_dof(series[j],LENGTH,&av[j],&rms);
+    variance_dof(series[j],LENGTH,DDOF,&av[j],&rms);
     for (i=0;i<LENGTH;i++)
       series[j][i] -= av[j];
   }
