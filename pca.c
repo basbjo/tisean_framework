@@ -319,7 +319,7 @@ int main(int argc,char **argv)
   check_alloc(av=(double*)malloc(sizeof(double)*DIM));
   for (j=0;j<DIM;j++) {
     av[j]=rms=0.0;
-    variance(series[j],LENGTH,&av[j],&rms);
+    variance_dof(series[j],LENGTH,&av[j],&rms);
     for (i=0;i<LENGTH;i++)
       series[j][i] -= av[j];
   }

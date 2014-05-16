@@ -23,7 +23,7 @@
 #include <math.h>
 #include "tisean_cec.h"
 
-void variance(double *s,unsigned long l,double *av,double *var)
+void variance_dof(double *s,unsigned long l,double *av,double *var)
 {
   unsigned long i;
   double h;
