@@ -99,7 +99,7 @@ int main(int argc,char **argv)
   double min,max;
   double av,varianz;
   long i,n;
-    
+
   if (scan_help(argc,argv))
     show_options(argv[0]);
 
@@ -129,32 +129,32 @@ int main(int argc,char **argv)
 
   if (xmin >= xmax) {
     fprintf(stderr,"Choosing the minimum larger or equal the maximum\n"
-	    "makes no sense. Exiting!\n");
+        "makes no sense. Exiting!\n");
     exit(RESCALE__WRONG_INTERVAL);
   }
 
   if (column == NULL)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,"",dimset,
-				      verbosity);
+                    verbosity);
   else
     series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
-				      dimset,verbosity);
+                    dimset,verbosity);
 
   for (n=0;n<dim;n++) {
     variance(series[n],length,&av,&varianz);
-    
+
     if (set_av)
       for (i=0;i<length;i++)
-	series[n][i] -= av;
+    series[n][i] -= av;
 
     if (set_var)
       for (i=0;i<length;i++)
-	series[n][i] /= varianz;
-  
+    series[n][i] /= varianz;
+
     if (!set_var && !set_av) {
       rescale_data(series[n],length,&min,&max);
       for (i=0;i<length;i++)
-	series[n][i]=series[n][i]*(xmax-xmin)+xmin;
+    series[n][i]=series[n][i]*(xmax-xmin)+xmin;
     }
   }
 
@@ -164,7 +164,7 @@ int main(int argc,char **argv)
     for (i=0;i<length;i++) {
       fprintf(stdout,"%e",series[0][i]);
       for (n=1;n<dim;n++)
-	fprintf(stdout," %e",series[n][i]);
+    fprintf(stdout," %e",series[n][i]);
       fprintf(stdout,"\n");
     }
   }
@@ -175,7 +175,7 @@ int main(int argc,char **argv)
     for (i=0;i<length;i++) {
       fprintf(file,"%e",series[0][i]);
       for (n=1;n<dim;n++)
-	fprintf(file," %e",series[n][i]);
+    fprintf(file," %e",series[n][i]);
       fprintf(file,"\n");
     }
     fclose(file);

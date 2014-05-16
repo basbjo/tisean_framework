@@ -35,7 +35,7 @@ double *array;
 double av,var;
 char *infile=NULL;
 
-void show_options(char *progname) 
+void show_options(char *progname)
 {
   what_i_do(progname,WID_STR);
   fprintf(stderr," Usage: %s [Options]\n",progname);
@@ -49,7 +49,7 @@ void show_options(char *progname)
   fprintf(stderr,"\t-c column to read [default is 1]\n");
   fprintf(stderr,"\t-D corrlength  [default is 100]\n");
   fprintf(stderr,"\t-n don\'t normalize to the variance"
-	  " of the data [not set]\n");
+      " of the data [not set]\n");
   fprintf(stderr,"\t-o output_file  [default is 'datafile'.cor; no -o"
   " means stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default is 1]\n\t\t"
@@ -87,7 +87,7 @@ double corr(long i)
 {
   long j;
   double c=0.0;
-  
+
   for (j=0;j<(length-i);j++)
     c += array[j]*array[j+i];
 
@@ -99,10 +99,10 @@ int main(int argc,char** argv)
   char stdi=0;
   long i;
   FILE *fout=NULL;
-  
+
   if (scan_help(argc,argv))
     show_options(argv[0]);
-  
+
   scan_options(argc,argv);
 #ifndef OMIT_WHAT_I_DO
   if (verbosity&VER_INPUT)
@@ -112,7 +112,7 @@ int main(int argc,char** argv)
   infile=search_datafile(argc,argv,&column,verbosity);
   if (infile == NULL)
     stdi=1;
-  
+
   if (outfile == NULL) {
     if (!stdi) {
       check_alloc(outfile=(char*)calloc(strlen(infile)+5,(size_t)1));

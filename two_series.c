@@ -35,7 +35,7 @@ unsigned int verbosity=0xff;
 double *array1,*array2;
 char *infile=NULL;
 
-void show_options(char *progname) 
+void show_options(char *progname)
 {
   what_i_do(progname,WID_STR);
   fprintf(stderr," Usage: %s [Options]\n",progname);
@@ -84,7 +84,7 @@ double corr(long i)
   unsigned long count=0;
   long j,hi;
   double c=0.0;
-  
+
   for (j=0;j<length;j++) {
     hi=j+i;
     if ((hi >= 0) && (hi < length)) {
@@ -106,7 +106,7 @@ int main(int argc,char** argv)
 
   if (scan_help(argc,argv))
     show_options(argv[0]);
-  
+
   scan_options(argc,argv);
 #ifndef OMIT_WHAT_I_DO
   if (verbosity&VER_INPUT)
@@ -116,7 +116,7 @@ int main(int argc,char** argv)
   infile=search_datafile(argc,argv,0L,verbosity);
   if (infile == NULL)
     stdi=1;
-  
+
   if (outfile == NULL) {
     if (!stdi) {
       check_alloc(outfile=(char*)calloc(strlen(infile)+5,(size_t)1));
@@ -133,11 +133,11 @@ int main(int argc,char** argv)
 
   if (columns == NULL)
     both=(double**)get_multi_series(infile,&length,exclude,&dummy,"",(char)1,
-				    verbosity);
+                    verbosity);
   else
     both=(double**)get_multi_series(infile,&length,exclude,&dummy,columns,
-				    (char)1,verbosity);
-    
+                    (char)1,verbosity);
+
   array1=both[0];
   array2=both[1];
 
@@ -146,7 +146,7 @@ int main(int argc,char** argv)
 
   variance(array1,length,&av1,&var1);
   variance(array2,length,&av2,&var2);
-  
+
   for (i=0;i<length;i++) {
     array1[i] -= av1;
     array2[i] -= av2;
@@ -181,6 +181,6 @@ int main(int argc,char** argv)
     }
   if (!stout)
     fclose(fout);
-  
+
   return 0;
 }
