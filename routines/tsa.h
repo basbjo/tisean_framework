@@ -53,6 +53,7 @@ extern char* myfgets(char *,int *,FILE *,unsigned int);
 /* The following functions are NOT part of TISEAN */
 extern void four1(double *data,int nn,int isign);
 extern void realft(double *data,int n,int isign);
+extern void psd1(double *data,int N,double dt);
 
 #ifdef __cplusplus
 }
