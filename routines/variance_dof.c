@@ -17,13 +17,14 @@
  *   along with TISEAN; if not, write to the Free Software
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-/*Author: Rainer Hegger Last modified: May 23th, 1998 */
+/*Author: Rainer Hegger Last modified: May 23th, 1998
+ * Adapted by Bjoern Bastian. Last modified: May 16, 2014 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "tisean_cec.h"
 
-void variance_dof(double *s,unsigned long l,double *av,double *var)
+void variance_dof(double *s,unsigned long l,unsigned int ddof,double *av,double *var)
 {
   unsigned long i;
   double h;
@@ -36,7 +37,7 @@ void variance_dof(double *s,unsigned long l,double *av,double *var)
     *var += h*h;
   }
   *av /= (double)l;
-  *var=sqrt(fabs((*var)/(double)l-(*av)*(*av)));
+  *var=sqrt(fabs((*var)/(double)(l-ddof)-(*av)*(*av)));
   if (*var == 0.0) {
     fprintf(stderr,"Variance of the data is zero. Exiting!\n\n");
     exit(VARIANCE_VAR_EQ_ZERO);
