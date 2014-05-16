@@ -8,7 +8,7 @@ RANLIB = @RANLIB@
 
 ALL = get_series.o get_multi_series.o myfgets.o\
       search_datafile.o test_outfile.o check_alloc.o\
-      scan_help.o check_option.o
+      scan_help.o check_option.o what_i_do.o
 
 libddtsa.a: $(ALL)
 	$(AR) $(ARFLAGS) libddtsa.a $?

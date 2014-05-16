@@ -51,6 +51,7 @@ extern void test_outfile(char*);
 
 extern void check_alloc(void *);
 extern char* myfgets(char *,int *,FILE *,unsigned int);
+extern void what_i_do(char *, char *);
 
 #ifdef __cplusplus
 }
