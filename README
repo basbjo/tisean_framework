@@ -1,0 +1,28 @@
+You find here C code for file input/output and option parsing
+that was extracted from the TISEAN 3.0.1 source code.
+See routines/COPYING for the license.
+
+    Nonlinear time series project
+    Copyright (C) Rainer Hegger & Thomas Schreiber (1998-2007)
+    http://www.mpipks-dresden.mpg.de/~tisean/
+
+series.c, two_series.c and multi_series.c are provided that can
+read one column, two columns or multiple columns from file.
+
+They can be used as a general framework to be supplemented with
+specific functions applied to time series data.  In all files a
+comment "/* processing */" indicates where further actions on
+the data can be added.  The example program series.c prints the
+column that has been read, two_series.c multiplies two columns
+line by line and multi_series.c shifts and rescales the data to
+the interval [0,1].
+
+To install type
+
+    > ./configure
+    > make
+    > make install
+
+For a simple test type
+
+    > make test
