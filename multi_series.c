@@ -31,7 +31,7 @@ unsigned long length=ULONG_MAX,exclude=0;
 unsigned int dim=1;
 unsigned int verbosity=0xff;
 char *column=NULL;
-char *outfile=NULL,stdo=1,set_av=0,set_var=0,dimset=0;
+char *outfile=NULL,stdo=1,dimset=0;
 char *infile=NULL;
 double **series;
 double xmin=0.0,xmax=1.0;
@@ -44,20 +44,20 @@ void show_options(char *progname)
   fprintf(stderr,"Everything not being a valid option will be interpreted"
           " as a possible"
           " datafile.\nIf no datafile is given stdin is read. Just - also"
-          " means stdin\n");
-  fprintf(stderr,"\t-l # of data to use [default: whole file]\n");
-  fprintf(stderr,"\t-x # of lines to ignore [default: 0]\n");
-  fprintf(stderr,"\t-m # of components to be read [default: %u]\n",dim);
-  fprintf(stderr,"\t-c columns to read [default: 1,...,# of components]\n");
-  fprintf(stderr,"\t-z minimum of the new series [default: 0.0]\n");
-  fprintf(stderr,"\t-Z maximum of the new series [default: 1.0]\n");
-  fprintf(stderr,"\t-a create a series with average value equals 0\n");
-  fprintf(stderr,"\t-v create a series with variance 1\n");
-  fprintf(stderr,"\t-o output file name [default: 'datafile'.res']\n");
-  fprintf(stderr,"\t-V verbosity level [default: 1]\n\t\t"
+          " means stdin.\n");
+  fprintf(stderr,"\t-l # of lines to use [default is whole file]\n");
+  fprintf(stderr,"\t-x # of lines to ignore [default 0]\n");
+  fprintf(stderr,"\t-m # of components to be read [default %u]\n",dim);
+  fprintf(stderr,"\t-c columns to be read [default 1,...,# of components]\n");
+  fprintf(stderr,"\t-z minimum of the new series [default 0.0]\n");
+  fprintf(stderr,"\t-Z maximum of the new series [default 1.0]\n");
+  fprintf(stderr,"\t-o output file name [default 'datafile'.res; no -o"
+  " means stdout]\n");
+  fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
           "0='only panic messages'\n\t\t"
           "1='+ input/output messages'\n");
   fprintf(stderr,"\t-h show these options\n");
+  fprintf(stderr,"\n");
   exit(0);
 }
 
@@ -81,10 +81,6 @@ void scan_options(int n,char **in)
     sscanf(out,"%lf",&xmin);
   if ((out=check_option(in,n,'Z','f')) != NULL)
     sscanf(out,"%lf",&xmax);
-  if ((out=check_option(in,n,'a','n')) != NULL)
-    set_av=1;
-  if ((out=check_option(in,n,'v','n')) != NULL)
-    set_var=1;
   if ((out=check_option(in,n,'o','o')) != NULL) {
     stdo=0;
     if (strlen(out) > 0)
@@ -142,20 +138,6 @@ int main(int argc,char **argv)
 
   for (n=0;n<dim;n++) {
     variance(series[n],length,&av,&varianz);
-
-    if (set_av)
-      for (i=0;i<length;i++)
-    series[n][i] -= av;
-
-    if (set_var)
-      for (i=0;i<length;i++)
-    series[n][i] /= varianz;
-
-    if (!set_var && !set_av) {
-      rescale_data(series[n],length,&min,&max);
-      for (i=0;i<length;i++)
-    series[n][i]=series[n][i]*(xmax-xmin)+xmin;
-    }
   }
 
   if (stdo) {

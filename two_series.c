@@ -30,7 +30,6 @@ given as two columns of one file."
 
 char *columns=NULL,*outfile=NULL,stout=1;
 unsigned long length=ULONG_MAX,exclude=0;
-long tau=100;
 unsigned int verbosity=0xff;
 double *array1,*array2;
 char *infile=NULL;
@@ -38,19 +37,18 @@ char *infile=NULL;
 void show_options(char *progname)
 {
   fprintf(stderr, "\n%s: %s\n\n",progname,WID_STR);
-  fprintf(stderr," Usage: %s [Options]\n",progname);
+  fprintf(stderr," Usage: %s [options]\n",progname);
   fprintf(stderr," Options:\n");
   fprintf(stderr,"Everything not being a valid option will be interpreted"
           " as a possible"
           " datafile.\nIf no datafile is given stdin is read. Just - also"
-          " means stdin\n");
-  fprintf(stderr,"\t-l length [default is whole file]\n");
-  fprintf(stderr,"\t-x # of lines to be ignored [default 0]\n");
-  fprintf(stderr,"\t-c which columns (separated by commas) [default is 1,2]\n");
-  fprintf(stderr,"\t-D corrlength  [default is 100]\n");
-  fprintf(stderr,"\t-o output_file  [default is 'datafile'.crc; no -o"
+          " means stdin.\n");
+  fprintf(stderr,"\t-l # of lines to use [default is whole file]\n");
+  fprintf(stderr,"\t-x # of lines to ignore [default 0]\n");
+  fprintf(stderr,"\t-c columns to be read [default 1,2]\n");
+  fprintf(stderr,"\t-o output file name [default 'datafile'.prod; no -o"
   " means stdout]\n");
-  fprintf(stderr,"\t-V verbosity level [default is 1]\n\t\t"
+  fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
           "0='only panic messages'\n\t\t"
           "1='+ input/output messages'\n");
   fprintf(stderr,"\t-h show these options\n");
@@ -68,8 +66,6 @@ void scan_options(int argc,char **argv)
     sscanf(out,"%lu",&exclude);
   if ((out=check_option(argv,argc,'c','s')) != NULL)
     columns=out;
-  if ((out=check_option(argv,argc,'D','u')) != NULL)
-    sscanf(out,"%ld",&tau);
   if ((out=check_option(argv,argc,'V','u')) != NULL)
     sscanf(out,"%u",&verbosity);
   if ((out=check_option(argv,argc,'o','o')) != NULL) {
@@ -121,11 +117,11 @@ int main(int argc,char** argv)
     if (!stdi) {
       check_alloc(outfile=(char*)calloc(strlen(infile)+5,(size_t)1));
       strcpy(outfile,infile);
-      strcat(outfile,".ccr");
+      strcat(outfile,".prod");
     }
     else {
       check_alloc(outfile=(char*)calloc((size_t)10,(size_t)1));
-      strcpy(outfile,"stdin.ccr");
+      strcpy(outfile,"stdin.prod");
     }
   }
   if (!stout)
@@ -140,9 +136,6 @@ int main(int argc,char** argv)
 
   array1=both[0];
   array2=both[1];
-
-  if (tau >= length)
-    tau=length-1;
 
   variance(array1,length,&av1,&var1);
   variance(array2,length,&av2,&var2);
@@ -170,15 +163,6 @@ int main(int argc,char** argv)
     fprintf(stdout,"# standard deviation of sec. comp.=%e\n",var2);
   }
 
-  for (i= -tau;i<=tau;i++)
-    if (!stout) {
-      fprintf(fout,"%ld %e\n",i,corr(i)/var1/var2);
-      fflush(fout);
-    }
-    else {
-      fprintf(stdout,"%ld %e\n",i,corr(i)/var1/var2);
-      fflush(stdout);
-    }
   if (!stout)
     fclose(fout);
 
