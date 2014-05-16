@@ -89,7 +89,7 @@ int main(int argc,char **argv)
   char stdi=0;
   unsigned long i,j;
   double x,norm,size=1.0,size2=1.0;
-  double min,max;
+  double min,interval;
   double *series;
   double average,var;
   long *box;
@@ -125,12 +125,12 @@ int main(int argc,char **argv)
   series=(double*)get_series(infile,&length,exclude,column,verbosity);
   variance(series,length,&average,&var);
 
-  min=max=series[0];
+  min=interval=series[0];
   for (i=1;i<length;i++) {
     if (series[i] < min) min=series[i];
-    else if (series[i] > max) max=series[i];
+    else if (series[i] > interval) interval=series[i];
   }
-  max -= min;
+  interval -= min;
 
   for (i=0;i<length;i++)
     series[i]=(series[i]-min);
@@ -140,11 +140,11 @@ int main(int argc,char **argv)
     for (i=0;i<base;i++)
       box[i]=0;
     size=1./base;
-    size2=(1.0-size/2.0)*max;
+    size2=(1.0-size/2.0)*interval;
     for (i=0;i<length;i++) {
       if (series[i] > size2)
 	series[i]=size2;
-      j=(long)(series[i]*base/max);
+      j=(long)(series[i]*base/interval);
       box[j]++;
     }
   }
@@ -152,30 +152,30 @@ int main(int argc,char **argv)
   if (!density)
     norm=1.0/(double)length;
   else
-    norm=1.0/(double)length*(double)base/max;
+    norm=1.0/(double)length*(double)base/interval;
 
   if (!my_stdout) {
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Opened %s for writing\n",outfile);
-    fprintf(fout,"#interval of data: [%e:%e]\n",min,max+min);
+    fprintf(fout,"#interval of data: [%e:%e]\n",min,min+interval);
     fprintf(fout,"#average= %e\n",average);
     fprintf(fout,"#standard deviation= %e\n",var);
     for (i=0;i<base;i++) {
       x=(double)(i*size);
-      fprintf(fout,"%e %e\n",(x+size/2.0)*max+min,(double)box[i]*norm);
+      fprintf(fout,"%e %e\n",(x+size/2.0)*interval+min,(double)box[i]*norm);
     }
     fclose(fout);
   }
   else {
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
-    fprintf(stdout,"#interval of data: [%e:%e]\n",min,max+min);
+    fprintf(stdout,"#interval of data: [%e:%e]\n",min,min+interval);
     fprintf(stdout,"#average= %e\n",average);
     fprintf(stdout,"#standard deviation= %e\n",var);
     for (i=0;i<base;i++) {
       x=(double)(i*size);
-      fprintf(stdout,"%e %e\n",(x+size/2.0)*max+min,(double)box[i]*norm);
+      fprintf(stdout,"%e %e\n",(x+size/2.0)*interval+min,(double)box[i]*norm);
       fflush(stdout);
     }
   }
