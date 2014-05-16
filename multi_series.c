@@ -96,6 +96,7 @@ int main(int argc,char** argv)
   double min,max;
   double av,varianz;
 
+  /* get options */
   if (scan_help(argc,argv))
     show_options(argv[0]);
 
@@ -129,6 +130,7 @@ int main(int argc,char** argv)
     exit(RESCALE__WRONG_INTERVAL);
   }
 
+  /* get data */
   if (columns == NULL)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,"",dimset,
                     verbosity);
@@ -136,10 +138,12 @@ int main(int argc,char** argv)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,columns,
                     dimset,verbosity);
 
+  /* processing */
   for (n=0;n<dim;n++) {
     variance(series[n],length,&av,&varianz);
   }
 
+  /* write results */
   if (!stout) {
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)

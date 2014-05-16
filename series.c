@@ -93,6 +93,7 @@ int main(int argc,char** argv)
   long i;
   FILE *fout=NULL;
 
+  /* get options */
   if (scan_help(argc,argv))
     show_options(argv[0]);
 
@@ -120,10 +121,13 @@ int main(int argc,char** argv)
   if (!stout)
     test_outfile(outfile);
 
+  /* get data */
   array=(double*)get_series(infile,&length,exclude,column,verbosity);
 
+  /* processing */
   variance(array,length,&av,&var);
 
+  /* write results */
   if (!stout) {
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)

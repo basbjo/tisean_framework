@@ -101,6 +101,7 @@ int main(int argc,char** argv)
   double **both;
   double av1,var1,av2,var2;
 
+  /* get options */
   if (scan_help(argc,argv))
     show_options(argv[0]);
 
@@ -128,6 +129,7 @@ int main(int argc,char** argv)
   if (!stout)
     test_outfile(outfile);
 
+  /* get data */
   if (columns == NULL)
     both=(double**)get_multi_series(infile,&length,exclude,&dummy,"",(char)1,
                     verbosity);
@@ -141,11 +143,13 @@ int main(int argc,char** argv)
   variance(array1,length,&av1,&var1);
   variance(array2,length,&av2,&var2);
 
+  /* processing */
   for (i=0;i<length;i++) {
     array1[i] -= av1;
     array2[i] -= av2;
   }
 
+  /* write results */
   if (!stout) {
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)
