@@ -23,6 +23,11 @@ routines/libddtsa.a:
 $(ALL): routines/libddtsa.a *.c
 	-$(CC) $(CFLAGS) $(COPTS) -o $@ $@.c $(LOADLIBS)
 
+test: all
+	./series -V0 test_data | cut -d\  -f2 | diff - test_col1
+	./two_series -V0 -c1,3 test_data | diff - test_prod
+	./multi_series -V0 -z 1.3 -Z 100 test_data | diff - test_col1
+
 install: all
 	-for bin in $(ALL); do $(INSTALL) $$bin $(BINDIR); done
 
@@ -41,4 +46,4 @@ missing:
 uninstall:
 	-@for bin in $(ALL); do rm -f $(BINDIR)/$$bin; done
 
-.PHONY: all install clean missing uninstall
+.PHONY: all test install clean missing uninstall
