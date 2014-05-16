@@ -6,7 +6,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 RANLIB = @RANLIB@
 
-ALL = get_series.o get_multi_series.o myfgets.o\
+ALL = get_series.o myfgets.o\
       search_datafile.o test_outfile.o check_alloc.o\
       scan_help.o check_option.o
 
