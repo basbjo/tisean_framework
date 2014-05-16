@@ -44,6 +44,6 @@
 #define CHECK_OPTION_NOT_THREE 25
 
 /* These are the codes for the main routines */
-#define RESCALE__WRONG_INTERVAL 67
+#define MULTI_SERIES__WRONG_INTERVAL 67
 
 #endif

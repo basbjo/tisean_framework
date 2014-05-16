@@ -25,14 +25,13 @@
 #include <string.h>
 #include "routines/tsa.h"
 
-#define WID_STR "Estimates the autocorrelations of a data set"
+#define WID_STR "Enumerates and formats a data set"
 
 unsigned long length=ULONG_MAX,exclude=0;
 unsigned int column=1;
 unsigned int verbosity=0xff;
 char *outfile=NULL,stout=1;
 double *array;
-double av,var;
 char *infile=NULL;
 
 void show_options(char *progname)
@@ -76,15 +75,13 @@ void scan_options(int argc,char **argv)
   }
 }
 
-double corr(long i)
+double same(long i)
 {
-  long j;
   double c=0.0;
 
-  for (j=0;j<(length-i);j++)
-    c += array[j]*array[j+i];
+  c = array[i];
 
-  return c/(length-i);
+  return c;
 }
 
 int main(int argc,char** argv)
@@ -125,22 +122,25 @@ int main(int argc,char** argv)
   array=(double*)get_series(infile,&length,exclude,column,verbosity);
 
   /* processing */
-  variance(array,length,&av,&var);
 
   /* write results */
   if (!stout) {
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Opened %s for writing\n",outfile);
-    fprintf(fout,"# average=%e\n",av);
-    fprintf(fout,"# standard deviation=%e\n",var);
+    for (i=0;i<length;i++) {
+      fprintf(fout,"%ld %e\n",i,same(i));
+      fflush(fout);
+    }
     fclose(fout);
   }
   else {
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
-    fprintf(stdout,"# average=%e\n",av);
-    fprintf(stdout,"# standard deviation=%e\n",var);
+    for (i=0;i<length;i++) {
+      fprintf(stdout,"%ld %e\n",i,same(i));
+      fflush(stdout);
+    }
   }
 
   if (outfile != NULL)

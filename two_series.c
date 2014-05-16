@@ -25,7 +25,7 @@
 #include <string.h>
 #include "routines/tsa.h"
 
-#define WID_STR "Estimates the crosscorrelations of two data sets\n\t\
+#define WID_STR "Multiplies two data sets\n\t\
 given as two columns of one file."
 
 unsigned long length=ULONG_MAX,exclude=0;
@@ -76,20 +76,13 @@ void scan_options(int argc,char **argv)
   }
 }
 
-double corr(long i)
+double prod(long i)
 {
-  unsigned long count=0;
-  long j,hi;
   double c=0.0;
 
-  for (j=0;j<length;j++) {
-    hi=j+i;
-    if ((hi >= 0) && (hi < length)) {
-      count++;
-      c += array1[j]*array2[hi];
-    }
-  }
-  return c/(double)count;
+  c = array1[i]*array2[i];
+
+  return c;
 }
 
 int main(int argc,char** argv)
@@ -99,7 +92,6 @@ int main(int argc,char** argv)
   unsigned int dummy=2;
   FILE *fout=NULL;
   double **both;
-  double av1,var1,av2,var2;
 
   /* get options */
   if (scan_help(argc,argv))
@@ -140,33 +132,26 @@ int main(int argc,char** argv)
   array1=both[0];
   array2=both[1];
 
-  variance(array1,length,&av1,&var1);
-  variance(array2,length,&av2,&var2);
-
   /* processing */
-  for (i=0;i<length;i++) {
-    array1[i] -= av1;
-    array2[i] -= av2;
-  }
 
   /* write results */
   if (!stout) {
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Opened %s for writing\n",outfile);
-    fprintf(fout,"# average of first comp.=%e\n",av1);
-    fprintf(fout,"# standard deviation of first comp.=%e\n",var1);
-    fprintf(fout,"# average of sec. comp.=%e\n",av2);
-    fprintf(fout,"# standard deviation of sec. comp.=%e\n",var2);
+    for (i=0;i<length;i++) {
+      fprintf(fout,"%e\n",prod(i));
+      fflush(fout);
+    }
     fclose(fout);
   }
   else {
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
-    fprintf(stdout,"# average of first comp.=%e\n",av1);
-    fprintf(stdout,"# standard deviation of first comp.=%e\n",var1);
-    fprintf(stdout,"# average of sec. comp.=%e\n",av2);
-    fprintf(stdout,"# standard deviation of sec. comp.=%e\n",var2);
+    for (i=0;i<length;i++) {
+      fprintf(stdout,"%e\n",prod(i));
+      fflush(stdout);
+    }
   }
 
   if (outfile != NULL)

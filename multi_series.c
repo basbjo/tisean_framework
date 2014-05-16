@@ -93,8 +93,7 @@ int main(int argc,char** argv)
   char stdi=0;
   long i,n;
   FILE *fout=NULL;
-  double min,max;
-  double av,varianz;
+  double min,interval;
 
   /* get options */
   if (scan_help(argc,argv))
@@ -127,7 +126,7 @@ int main(int argc,char** argv)
   if (xmin >= xmax) {
     fprintf(stderr,"Choosing the minimum larger or equal the maximum\n"
         "makes no sense. Exiting!\n");
-    exit(RESCALE__WRONG_INTERVAL);
+    exit(MULTI_SERIES__WRONG_INTERVAL);
   }
 
   /* get data */
@@ -140,7 +139,10 @@ int main(int argc,char** argv)
 
   /* processing */
   for (n=0;n<dim;n++) {
-    variance(series[n],length,&av,&varianz);
+    rescale_data(series[n],length,&min,&interval);
+    for (i=0;i<length;i++)
+        /* series[n][i]=series[n][i]*interval+min;*//* original scale */
+        series[n][i]=series[n][i]*(xmax-xmin)+xmin;
   }
 
   /* write results */
@@ -153,6 +155,7 @@ int main(int argc,char** argv)
       for (n=1;n<dim;n++)
     fprintf(fout," %e",series[n][i]);
       fprintf(fout,"\n");
+      fflush(fout);
     }
     fclose(fout);
   }
@@ -164,6 +167,7 @@ int main(int argc,char** argv)
       for (n=1;n<dim;n++)
     fprintf(stdout," %e",series[n][i]);
       fprintf(stdout,"\n");
+      fflush(stdout);
     }
   }
 
