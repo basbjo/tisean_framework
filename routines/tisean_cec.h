@@ -18,7 +18,7 @@
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 /*Author: Rainer Hegger Last modified: May 26, 2000*/
-/*Changes: Bjoern Bastian Last modified: May 14, 2014 */
+/*Changes: Bjoern Bastian Last modified: May 16, 2014 */
 
 /* These definitions give the exit codes for the C part of the Tisean package.
    Typically the name is build up of, first, the name of the routine creating
@@ -44,5 +44,6 @@
 #define CHECK_OPTION_NOT_THREE 25
 
 /* These are the codes for the main routines */
+#define RESCALE__WRONG_INTERVAL 67
 
 #endif
