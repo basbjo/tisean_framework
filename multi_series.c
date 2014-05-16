@@ -1,6 +1,5 @@
 /*
- *   This file is part of TISEAN
- *
+ *   This file is derived from rescale.c of TISEAN,
  *   Copyright (c) 1998-2007 Rainer Hegger, Holger Kantz, Thomas Schreiber
  *
  *   TISEAN is free software; you can redistribute it and/or modify
@@ -17,7 +16,8 @@
  *   along with TISEAN; if not, write to the Free Software
  *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
-/*Author: Rainer Hegger. Last modified: Nov 23, 2000 */
+/*Author: Rainer Hegger. Last modified: Nov 23, 2000
+ * Adapted by Bjoern Bastian. Last modified: May 16, 2014 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,7 +38,7 @@ double xmin=0.0,xmax=1.0;
 
 void show_options(char *progname)
 {
-  what_i_do(progname,WID_STR);
+  fprintf(stderr, "\n%s: %s\n\n",progname,WID_STR);
   fprintf(stderr," Usage: %s [options]\n",progname);
   fprintf(stderr," Options:\n");
   fprintf(stderr,"Everything not being a valid option will be interpreted"
@@ -106,7 +106,7 @@ int main(int argc,char **argv)
   scan_options(argc,argv);
 #ifndef OMIT_WHAT_I_DO
   if (verbosity&VER_INPUT)
-    what_i_do(argv[0],WID_STR);
+    fprintf(stderr, "\n%s: %s\n\n",argv[0],WID_STR);
 #endif
 
   infile=search_datafile(argc,argv,NULL,verbosity);
