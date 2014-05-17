@@ -1,4 +1,4 @@
-/*Author: Rainer Hegger. Last modified: Jul 28, 2004 */
+/*Author: Rainer Hegger. Last modified: May 19, 2014 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,8 +19,6 @@ unsigned int verbosity=0xff;
 unsigned int stout=1;
 char *outfile=NULL;
 char *infile=NULL;
-
-double **series;
 
 void show_options(char *progname)
 {
@@ -68,8 +66,9 @@ int main(int argc,char **argv)
 {
   unsigned int dim=2;
   char stdi=0;
-  double min[2],interval[2];
   double base_1,sx,sy,logmax,logout,norm1,norm2;
+  double min[2],interval[2];
+  double **series;
   unsigned long i,j,lmax;
   unsigned int bi,bj;
   unsigned long **box,*box1d;
@@ -106,8 +105,21 @@ int main(int argc,char **argv)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
                                       1,verbosity);
 
-  rescale_data(series[0],length,&min[0],&interval[0]);
-  rescale_data(series[1],length,&min[1],&interval[1]);
+  min[0]=interval[0]=series[0][0];
+  min[1]=interval[1]=series[1][0];
+  for (i=1;i<length;i++) {
+    if (series[0][i] < min[0]) min[0]=series[0][i];
+    else if (series[0][i] > interval[0]) interval[0]=series[0][i];
+    if (series[1][i] < min[1]) min[1]=series[1][i];
+    else if (series[1][i] > interval[1]) interval[1]=series[1][i];
+  }
+  interval[0] -= min[0];
+  interval[1] -= min[1];
+
+  for (i=0;i<length;i++) {
+    series[0][i]=(series[0][i]-min[0]);
+    series[1][i]=(series[1][i]-min[1]);
+  }
 
   check_alloc(box1d=(unsigned long*)malloc(sizeof(unsigned long)*base));
   for (i=0;i<base;i++)
@@ -126,8 +138,8 @@ int main(int argc,char **argv)
   norm2=(double)(length+base*base)*sx*sy;
 
   for (i=0;i<length;i++) {
-    bi=(unsigned int)(series[0][i]*base_1);
-    bj=(unsigned int)(series[1][i]*base_1);
+    bi=(unsigned int)(series[0][i]*base_1/interval[0]);
+    bj=(unsigned int)(series[1][i]*base_1/interval[1]);
     bi=(bi>=base)? base-1:bi;
     bj=(bj>=base)? base-1:bj;
     box[bi][bj]++;
