@@ -46,7 +46,7 @@ void show_options(char *progname)
 void scan_options(int n,char **argv)
 {
   char *out;
-  
+
   if ((out=check_option(argv,n,'l','u')) != NULL)
     sscanf(out,"%lu",&length);
   if ((out=check_option(argv,n,'x','u')) != NULL)
@@ -75,9 +75,9 @@ int main(int argc,char **argv)
   unsigned long **box,*box1d;
   FILE *fout=NULL;
 
-  if (scan_help(argc,argv)) 
+  if (scan_help(argc,argv))
     show_options(argv[0]);
-  
+
   scan_options(argc,argv);
 #ifndef OMIT_WHAT_I_DO
   if (verbosity&VER_INPUT)
@@ -138,7 +138,7 @@ int main(int argc,char **argv)
   for (i=0;i<base;i++)
     for (j=0;j<base;j++)
       if (box[i][j] > 0)
-	lmax=(box[i][j]>lmax)? box[i][j]:lmax;
+        lmax=(box[i][j]>lmax)? box[i][j]:lmax;
   logmax=log((double)lmax/norm2);
 
   if (!stout)
@@ -152,21 +152,21 @@ int main(int argc,char **argv)
     for (j=0;j<base;j++) {
       logout=log((double)box[i][j]/norm2)-logmax;
       if (stout) {
-	fprintf(stdout,"%e %e %e %e %e\n",(double)(i)*interval[0]+min[0],
-		(double)(j)*interval[1]+min[1],
-		(double)box[i][j]/norm2,
-		(double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
+        fprintf(stdout,"%e %e %e %e %e\n",(double)(i)*interval[0]+min[0],
+                (double)(j)*interval[1]+min[1],
+                (double)box[i][j]/norm2,
+                (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
       }
       else {
-	fprintf(fout,"%e %e %e %e %e\n",(double)(i)*interval[0]+min[0],
-		(double)(j)*interval[1]+min[1],
-		(double)box[i][j]/norm2,
-		(double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
+        fprintf(fout,"%e %e %e %e %e\n",(double)(i)*interval[0]+min[0],
+                (double)(j)*interval[1]+min[1],
+                (double)box[i][j]/norm2,
+                (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
       }
     }
     if (stout)
       fprintf(stdout,"\n");
-    else 
+    else
       fprintf(fout,"\n");
   }
   if (!stout)
