@@ -3,13 +3,12 @@
 void psd1(double *data,int length,double dt)
 /* Replaces 'data' by its power spectral density
  * new length will be length/2+1
- * TODO: verify normalization 'scale'
  */
-/*Author: Bjoern Bastian Last modified: Mar 9, 2014 */
+/*Author: Bjoern Bastian Last modified: May 16, 2014 */
 {
 	int i,ii;
 	double lastval;
-	double scale=1.0*dt/(6.28318530717959*length);
+	double scale=1.0*dt/length;
 
 	//Fourier transformation
 	realft(data-1,  length/2, 1);

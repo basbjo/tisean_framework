@@ -13,7 +13,7 @@ INSTALL = @INSTALL@
 LOADLIBS = routines/libddtsa.a -lm
 
 # list of executables we want to produce
-   ALL =   
+   ALL =   psd
 
 all: $(ALL)
 
@@ -22,6 +22,9 @@ routines/libddtsa.a:
 
 $(ALL): routines/libddtsa.a *.c
 	-$(CC) $(CFLAGS) $(COPTS) -o $@ $@.c $(LOADLIBS)
+
+test: all
+	./psd -V0 -t 0.001 -l 8 test_data | diff - test_psd
 
 install: all
 	-for bin in $(ALL); do $(INSTALL) $$bin $(BINDIR); done
@@ -41,4 +44,4 @@ missing:
 uninstall:
 	-@for bin in $(ALL); do rm -f $(BINDIR)/$$bin; done
 
-.PHONY: all install clean missing uninstall
+.PHONY: all test install clean missing uninstall
