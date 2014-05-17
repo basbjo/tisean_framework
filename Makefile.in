@@ -13,7 +13,7 @@ INSTALL = @INSTALL@
 LOADLIBS = routines/libddtsa.a -lm
 
 # list of executables we want to produce
-   ALL =   histogram
+   ALL =   histogram histo2d
 
 all: $(ALL)
 
