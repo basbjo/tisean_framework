@@ -46,9 +46,9 @@ void show_options(char *progname)
           " datafile.\nIf no datafile is given stdin is read. Just - also"
           " means stdin.\n");
   fprintf(stderr,"\t-l # of lines to use [default is whole file]\n");
-  fprintf(stderr,"\t-x # of lines to ignore [default 0]\n");
+  fprintf(stderr,"\t-x # of lines to ignore [default %lu]\n",exclude);
   fprintf(stderr,"\t-m # of components to be read [default %u]\n",dim);
-  fprintf(stderr,"\t-c columns to be read [default 1,...,# of components]\n");
+  fprintf(stderr,"\t-c column selection [default 1,...,# of components]\n");
   fprintf(stderr,"\t-z minimum of the new series [default 0.0]\n");
   fprintf(stderr,"\t-Z maximum of the new series [default 1.0]\n");
   fprintf(stderr,"\t-o output file name [default 'datafile'.res; no -o"

@@ -44,8 +44,8 @@ void show_options(char *progname)
           " datafile.\nIf no datafile is given stdin is read. Just - also"
           " means stdin.\n");
   fprintf(stderr,"\t-l # of lines to use [default is whole file]\n");
-  fprintf(stderr,"\t-x # of lines to ignore [default 0]\n");
-  fprintf(stderr,"\t-c column to be read [default 1]\n");
+  fprintf(stderr,"\t-x # of lines to ignore [default %lu]\n",exclude);
+  fprintf(stderr,"\t-c column selection [default %u]\n",column);
   fprintf(stderr,"\t-o output file name [default 'datafile'.same; no -o"
   " means stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
