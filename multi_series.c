@@ -91,7 +91,8 @@ void scan_options(int argc,char **argv)
 int main(int argc,char** argv)
 {
   char stdi=0;
-  long i,n;
+  unsigned int n;
+  unsigned long i;
   FILE *fout=NULL;
   double min,interval;
 

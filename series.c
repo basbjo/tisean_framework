@@ -75,7 +75,7 @@ void scan_options(int argc,char **argv)
   }
 }
 
-double same(long i)
+double same(unsigned long i)
 {
   double c=0.0;
 
@@ -87,7 +87,7 @@ double same(long i)
 int main(int argc,char** argv)
 {
   char stdi=0;
-  long i;
+  unsigned long i;
   FILE *fout=NULL;
 
   /* get options */

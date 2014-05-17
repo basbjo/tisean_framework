@@ -76,7 +76,7 @@ void scan_options(int argc,char **argv)
   }
 }
 
-double prod(long i)
+double prod(unsigned long i)
 {
   double c=0.0;
 
@@ -88,7 +88,7 @@ double prod(long i)
 int main(int argc,char** argv)
 {
   char stdi=0;
-  long i;
+  unsigned long i;
   unsigned int dummy=2;
   FILE *fout=NULL;
   double **both;
