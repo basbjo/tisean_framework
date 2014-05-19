@@ -37,7 +37,6 @@ unsigned long base=50;
 unsigned long exclude=0;
 unsigned int column=1;
 unsigned int verbosity=0xff;
-double size;
 char my_stdout=1,gotsize=0,density=0;
 char *outfile=NULL;
 char *infile=NULL;
@@ -98,7 +97,8 @@ int main(int argc,char **argv)
 {
   char stdi=0;
   unsigned long i,j;
-  double x,norm,size=1.0,size2=1.0;
+  unsigned long offset,range;
+  double x,norm,size;
   double min,interval,refmin,refinterval;
   double *series,*minmax;
   double average,var;
@@ -158,7 +158,7 @@ int main(int argc,char **argv)
   series=(double*)get_series(infile,&length,exclude,column,verbosity);
   variance(series,length,&average,&var);
 
-  /*Shift data to zero minimum*/
+  /*Get data minimum and interval*/
   min=interval=series[0];
   for (i=1;i<length;i++) {
     if (series[i] < min) min=series[i];
@@ -166,19 +166,30 @@ int main(int argc,char **argv)
   }
   interval -= min;
 
-  for (i=0;i<length;i++)
-    series[i]=(series[i]-min);
+  /*Settings*/
+  if (minmaxfile != NULL) {
+    size=refinterval/base;
+    offset=(long)((refmin-min)/size);
+    range=(long)((min+interval-refmin)/size)+offset;
+  }
+  else {
+    refmin=min;
+    refinterval=interval;
+    size=interval/base;
+    offset=0;
+    range=base;
+  }
 
-  if (base > 0) {
-    check_alloc(box=(long*)malloc(sizeof(long)*base));
-    for (i=0;i<base;i++)
+  /*Binning*/
+  if (range > 0) {
+    check_alloc(box=(long*)malloc(sizeof(long)*range));
+    for (i=0;i<range;i++)
       box[i]=0;
-    size=1./base;
-    size2=(1.0-size/2.0)*interval;
     for (i=0;i<length;i++) {
-      if (series[i] > size2)
-	series[i]=size2;
-      j=(long)(series[i]*base/interval);
+      j=(long)((series[i]-refmin)*base/refinterval+offset);
+      if (j >= range) {
+        j=range-1;
+      }
       box[j]++;
     }
   }
@@ -186,7 +197,7 @@ int main(int argc,char **argv)
   if (!density)
     norm=1.0/(double)length;
   else
-    norm=1.0/(double)length*(double)base/interval;
+    norm=1.0/(double)length/size;
 
   if (!my_stdout) {
     fout=fopen(outfile,"w");
@@ -195,9 +206,9 @@ int main(int argc,char **argv)
     fprintf(fout,"#interval of data: [%e:%e]\n",min,min+interval);
     fprintf(fout,"#average= %e\n",average);
     fprintf(fout,"#standard deviation= %e\n",var);
-    for (i=0;i<base;i++) {
-      x=(double)(i*size);
-      fprintf(fout,"%e %e\n",(x+size/2.0)*interval+min,(double)box[i]*norm);
+    for (i=0;i<range;i++) {
+      x=(double)(i*size-offset*size);
+      fprintf(fout,"%e %e\n",(x+size/2.0)+refmin,(double)box[i]*norm);
     }
     fclose(fout);
   }
@@ -207,9 +218,9 @@ int main(int argc,char **argv)
     fprintf(stdout,"#interval of data: [%e:%e]\n",min,min+interval);
     fprintf(stdout,"#average= %e\n",average);
     fprintf(stdout,"#standard deviation= %e\n",var);
-    for (i=0;i<base;i++) {
-      x=(double)(i*size);
-      fprintf(stdout,"%e %e\n",(x+size/2.0)*interval+min,(double)box[i]*norm);
+    for (i=0;i<range;i++) {
+      x=(double)(i*size-offset*size);
+      fprintf(stdout,"%e %e\n",(x+size/2.0)+refmin,(double)box[i]*norm);
       fflush(stdout);
     }
   }
