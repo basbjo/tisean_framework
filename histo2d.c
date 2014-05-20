@@ -1,4 +1,7 @@
 /*Author: Rainer Hegger. Last modified: May 20, 2014 */
+/*Changes by Bjoern Bastian:
+    2014/05/20: option -r to set reference binning range
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,9 +12,10 @@
 #include <math.h>
 #endif
 
-#define WID_STR "Creates a 2d-histogram of an bivariate time series"
+#define WID_STR "Creates a 2d-histogram of an bivariate time series [2014/05/20: option -r added]"
 
 unsigned long length=ULONG_MAX;
+unsigned long minmaxlength=3;
 unsigned long exclude=0;
 char *column=NULL;
 unsigned int base=16;
@@ -19,6 +23,7 @@ unsigned int verbosity=0xff;
 unsigned int stout=1;
 char *outfile=NULL;
 char *infile=NULL;
+char *minmaxfile=NULL;
 
 void show_options(char *progname)
 {
@@ -32,6 +37,7 @@ void show_options(char *progname)
   fprintf(stderr,"\t-x # of lines to ignore [default %ld]\n",exclude);
   fprintf(stderr,"\t-c columns to read [default 1,2]\n");
   fprintf(stderr,"\t-b # of intervals per dim [default %u]\n",base);
+  fprintf(stderr,"\t-r reference file for binning range [optional]\n");
   fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
           " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
@@ -55,6 +61,10 @@ void scan_options(int n,char **argv)
     sscanf(out,"%u",&base);
   if ((out=check_option(argv,n,'V','u')) != NULL)
     sscanf(out,"%u",&verbosity);
+  if ((out=check_option(argv,n,'r','o')) != NULL) {
+    if (strlen(out) > 0)
+      minmaxfile=out;
+  }
   if ((out=check_option(argv,n,'o','o')) != NULL) {
     stout=0;
     if (strlen(out) > 0)
@@ -66,13 +76,14 @@ int main(int argc,char **argv)
 {
   unsigned int dim=2;
   char stdi=0;
+  char *col=NULL;
   double base_1,sx,sy,logmax,logout,norm1,norm2;
-  double min[2],interval[2];
-  double **series;
+  double min[2],interval[2],refmin[2],refinterval[2];
+  double **series,**minmax;
   unsigned long i,j,lmax;
   unsigned int bi,bj;
   unsigned long **box,*box1d;
-  FILE *fout=NULL;
+  FILE *fout=NULL,*test=NULL;
 
   if (scan_help(argc,argv))
     show_options(argv[0]);
@@ -83,6 +94,40 @@ int main(int argc,char **argv)
     what_i_do(argv[0],WID_STR);
 #endif
 
+  /*Get reference range for option '-r'*/
+  if (minmaxfile != NULL) {
+    test=fopen(minmaxfile,"r");
+    if (test == NULL) {
+      fprintf(stderr,"File %s not found!\n",minmaxfile);
+      exit(HISTOGRAM__MINMAX_MISSING_OR_WRONG_FORMAT);
+    }
+    if (verbosity&VER_INPUT) {
+      fprintf(stderr,"Get reference range from file %s\n",minmaxfile);
+    }
+
+    if (column == NULL) {
+      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,"",1,
+                                        verbosity);
+    }
+    else {
+      check_alloc(col=calloc(strlen(column),(size_t)1));
+      strcpy(col,column);
+      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,col,
+                                        1,verbosity);
+    }
+
+    if(minmaxlength!=2) {
+      fprintf(stderr,"Wrong format in file '%s'. Needs exactly two lines"
+          " with minima and maxima for each column.\n",minmaxfile);
+      exit(HISTOGRAM__MINMAX_MISSING_OR_WRONG_FORMAT);
+    }
+    refmin[0]=minmax[0][0];
+    refinterval[0]=minmax[0][1]-refmin[0];
+    refmin[1]=minmax[1][0];
+    refinterval[1]=minmax[1][1]-refmin[1];
+  }
+
+  /*Read data*/
   infile=search_datafile(argc,argv,NULL,verbosity);
   if (infile == NULL)
     stdi=1;
@@ -105,6 +150,7 @@ int main(int argc,char **argv)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
                                       1,verbosity);
 
+  /*Get intervals and shift data to zero minimum*/
   min[0]=interval[0]=series[0][0];
   min[1]=interval[1]=series[1][0];
   for (i=1;i<length;i++) {
@@ -121,6 +167,7 @@ int main(int argc,char **argv)
     series[1][i]=(series[1][i]-min[1]);
   }
 
+  /*Binning*/
   check_alloc(box1d=(unsigned long*)malloc(sizeof(unsigned long)*base));
   for (i=0;i<base;i++)
     box1d[i]=1;
@@ -187,6 +234,7 @@ int main(int argc,char **argv)
   /*Freeing all allocated arrays*/
   if (outfile != NULL) free(outfile);
   if (infile != NULL) free(infile);
+  if (minmaxfile != NULL) free(minmaxfile);
   if (column != NULL) free(column);
   free(box1d);
   for (i=0;i<base;i++)
@@ -195,6 +243,11 @@ int main(int argc,char **argv)
   free(series[0]);
   free(series[1]);
   free(series);
+  if (minmaxfile != NULL) {
+    free(minmax[0]);
+    free(minmax[1]);
+    free(minmax);
+  }
 
   return 0;
 }
