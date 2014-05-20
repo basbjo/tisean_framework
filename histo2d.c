@@ -1,4 +1,4 @@
-/*Author: Rainer Hegger. Last modified: May 19, 2014 */
+/*Author: Rainer Hegger. Last modified: May 20, 2014 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -164,14 +164,14 @@ int main(int argc,char **argv)
     for (j=0;j<base;j++) {
       logout=log((double)box[i][j]/norm2)-logmax;
       if (stout) {
-        fprintf(stdout,"%e %e %e %e %e\n",(double)(i)*interval[0]+min[0],
-                (double)(j)*interval[1]+min[1],
+        fprintf(stdout,"%e %e %e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
+                ((double)(j)+0.5)*interval[1]+min[1],
                 (double)box[i][j]/norm2,
                 (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
       }
       else {
-        fprintf(fout,"%e %e %e %e %e\n",(double)(i)*interval[0]+min[0],
-                (double)(j)*interval[1]+min[1],
+        fprintf(fout,"%e %e %e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
+                ((double)(j)+0.5)*interval[1]+min[1],
                 (double)box[i][j]/norm2,
                 (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
       }
