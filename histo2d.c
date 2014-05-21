@@ -1,6 +1,6 @@
 /*Author: Rainer Hegger. Last modified: May 20, 2014 */
 /*Changes by Bjoern Bastian:
-    2014/05/20: option -r to set reference binning range
+    2014/05/21: option -r to set reference binning range
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +12,7 @@
 #include <math.h>
 #endif
 
-#define WID_STR "Creates a 2d-histogram of an bivariate time series [2014/05/20: option -r added]"
+#define WID_STR "Creates a 2d-histogram of an bivariate time series [2014/05/21: option -r added]"
 
 unsigned long length=ULONG_MAX;
 unsigned long minmaxlength=3;
@@ -75,6 +75,7 @@ void scan_options(int n,char **argv)
 int main(int argc,char **argv)
 {
   unsigned int dim=2;
+  unsigned long offset[2],range[2];
   char stdi=0;
   char *col=NULL;
   double base_1,sx,sy,logmax,logout,norm1,norm2;
@@ -150,7 +151,7 @@ int main(int argc,char **argv)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
                                       1,verbosity);
 
-  /*Get intervals and shift data to zero minimum*/
+  /*Get data minima and intervals*/
   min[0]=interval[0]=series[0][0];
   min[1]=interval[1]=series[1][0];
   for (i=1;i<length;i++) {
@@ -162,40 +163,55 @@ int main(int argc,char **argv)
   interval[0] -= min[0];
   interval[1] -= min[1];
 
-  for (i=0;i<length;i++) {
-    series[0][i]=(series[0][i]-min[0]);
-    series[1][i]=(series[1][i]-min[1]);
+  /*Settings*/
+  base_1=(double)base;
+  if (minmaxfile != NULL) {
+    sx=refinterval[0]/base_1;
+    sy=refinterval[1]/base_1;
+    offset[0]=(long)((refmin[0]-min[0])/sx);
+    offset[1]=(long)((refmin[1]-min[1])/sy);
+    range[0]=(long)ceil((min[0]+interval[0]-refmin[0])/sx)+offset[0];
+    range[1]=(long)ceil((min[1]+interval[1]-refmin[1])/sy)+offset[1];
+  }
+  else {
+    refmin[0]=min[0];
+    refmin[1]=min[1];
+    refinterval[0]=interval[0];
+    refinterval[1]=interval[1];
+    sx=refinterval[0]/base_1;
+    sy=refinterval[1]/base_1;
+    offset[0]=0;
+    offset[1]=0;
+    range[0]=base;
+    range[1]=base;
   }
 
   /*Binning*/
-  check_alloc(box1d=(unsigned long*)malloc(sizeof(unsigned long)*base));
-  for (i=0;i<base;i++)
+  check_alloc(box1d=(unsigned long*)malloc(sizeof(unsigned long)*range[0]));
+  for (i=0;i<range[0];i++)
     box1d[i]=1;
 
-  check_alloc(box=(unsigned long**)malloc(sizeof(unsigned long*)*base));
-  for (i=0;i<base;i++) {
-    check_alloc(box[i]=(unsigned long*)malloc(sizeof(unsigned long)*base));
-    for (j=0;j<base;j++)
+  check_alloc(box=(unsigned long**)malloc(sizeof(unsigned long*)*range[0]));
+  for (i=0;i<range[0];i++) {
+    check_alloc(box[i]=(unsigned long*)malloc(sizeof(unsigned long)*range[1]));
+    for (j=0;j<range[1];j++)
       box[i][j]=1;
   }
-  base_1=(double)base;
-  sx=interval[0]/base_1;
-  sy=interval[1]/base_1;
-  norm1=(double)(length+base)*sx;
-  norm2=(double)(length+base*base)*sx*sy;
+  norm1=(double)(length+range[0])*sx;
+  norm2=(double)(length+range[0]*range[1])*sx*sy;
 
   for (i=0;i<length;i++) {
-    bi=(unsigned int)(series[0][i]*base_1/interval[0]);
-    bj=(unsigned int)(series[1][i]*base_1/interval[1]);
-    bi=(bi>=base)? base-1:bi;
-    bj=(bj>=base)? base-1:bj;
+    bi=(unsigned int)((series[0][i]-refmin[0])*base_1/refinterval[0]+offset[0]);
+    bj=(unsigned int)((series[1][i]-refmin[1])*base_1/refinterval[1]+offset[1]);
+    bi=(bi>=range[0])? range[0]-1:bi;
+    bj=(bj>=range[1])? range[1]-1:bj;
     box[bi][bj]++;
     box1d[bi]++;
   }
 
   lmax=0;
-  for (i=0;i<base;i++)
-    for (j=0;j<base;j++)
+  for (i=0;i<range[0];i++)
+    for (j=0;j<range[1];j++)
       if (box[i][j] > 0)
         lmax=(box[i][j]>lmax)? box[i][j]:lmax;
   logmax=log((double)lmax/norm2);
@@ -205,20 +221,18 @@ int main(int argc,char **argv)
 
   fout=fopen(outfile,"w");
 
-  interval[0] /= base_1;
-  interval[1] /= base_1;
-  for (i=0;i<base;i++) {
-    for (j=0;j<base;j++) {
+  for (i=0;i<range[0];i++) {
+    for (j=0;j<range[1];j++) {
       logout=log((double)box[i][j]/norm2)-logmax;
       if (stout) {
-        fprintf(stdout,"%e %e %e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
-                ((double)(j)+0.5)*interval[1]+min[1],
+        fprintf(stdout,"%e %e %e %e %e\n",((double)(i)-offset[0]+0.5)*sx+refmin[0],
+                ((double)(j)-offset[1]+0.5)*sy+refmin[1],
                 (double)box[i][j]/norm2,
                 (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
       }
       else {
-        fprintf(fout,"%e %e %e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
-                ((double)(j)+0.5)*interval[1]+min[1],
+        fprintf(fout,"%e %e %e %e %e\n",((double)(i)-offset[0]+0.5)*sx+refmin[0],
+                ((double)(j)-offset[1]+0.5)*sy+refmin[1],
                 (double)box[i][j]/norm2,
                 (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
       }
@@ -237,7 +251,7 @@ int main(int argc,char **argv)
   if (minmaxfile != NULL) free(minmaxfile);
   if (column != NULL) free(column);
   free(box1d);
-  for (i=0;i<base;i++)
+  for (i=0;i<range[0];i++)
     free(box[i]);
   free(box);
   free(series[0]);
