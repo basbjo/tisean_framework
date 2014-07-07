@@ -1,4 +1,7 @@
 /*Author: Rainer Hegger. Last modified: May 20, 2014 */
+/*Changes by Bjoern Bastian:
+    2014/07/07: adapted version for n-dimensional histograms
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,11 +12,12 @@
 #include <math.h>
 #endif
 
-#define WID_STR "Creates a 2d-histogram of an bivariate time series"
+#define WID_STR "Creates a n-d-histogram of an bivariate time series [2014/07/07: n-d-histogram]"
 
 unsigned long length=ULONG_MAX;
 unsigned long exclude=0;
-char *column=NULL;
+unsigned int dim=2;
+char *columns=NULL,dimset=0;
 unsigned int base=16;
 unsigned int verbosity=0xff;
 unsigned int stout=1;
@@ -30,6 +34,7 @@ void show_options(char *progname)
           " Just - also means stdin\n");
   fprintf(stderr,"\t-l length of file [default whole file]\n");
   fprintf(stderr,"\t-x # of lines to ignore [default %ld]\n",exclude);
+  fprintf(stderr,"\t-m # of components to be read [default %u]\n",dim);
   fprintf(stderr,"\t-c columns to read [default 1,2]\n");
   fprintf(stderr,"\t-b # of intervals per dim [default %u]\n",base);
   fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
@@ -49,8 +54,12 @@ void scan_options(int n,char **argv)
     sscanf(out,"%lu",&length);
   if ((out=check_option(argv,n,'x','u')) != NULL)
     sscanf(out,"%lu",&exclude);
+  if ((out=check_option(argv,n,'m','u')) != NULL) {
+    sscanf(out,"%u",&dim);
+    dimset=1;
+  }
   if ((out=check_option(argv,n,'c','s')) != NULL)
-    column=out;
+    columns=out;
   if ((out=check_option(argv,n,'b','u')) != NULL)
     sscanf(out,"%u",&base);
   if ((out=check_option(argv,n,'V','u')) != NULL)
@@ -64,7 +73,6 @@ void scan_options(int n,char **argv)
 
 int main(int argc,char **argv)
 {
-  unsigned int dim=2;
   char stdi=0;
   double base_1,sx,sy,logmax,logout,norm1,norm2;
   double min[2],interval[2];
@@ -98,12 +106,12 @@ int main(int argc,char **argv)
     }
   }
 
-  if (column == NULL)
-    series=(double**)get_multi_series(infile,&length,exclude,&dim,"",1,
+  if (columns == NULL)
+    series=(double**)get_multi_series(infile,&length,exclude,&dim,"",dimset,
                                       verbosity);
   else
-    series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
-                                      1,verbosity);
+    series=(double**)get_multi_series(infile,&length,exclude,&dim,columns,
+                                      dimset,verbosity);
 
   min[0]=interval[0]=series[0][0];
   min[1]=interval[1]=series[1][0];
@@ -187,7 +195,7 @@ int main(int argc,char **argv)
   /*Freeing all allocated arrays*/
   if (outfile != NULL) free(outfile);
   if (infile != NULL) free(infile);
-  if (column != NULL) free(column);
+  if (columns != NULL) free(columns);
   free(box1d);
   for (i=0;i<base;i++)
     free(box[i]);
