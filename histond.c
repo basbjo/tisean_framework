@@ -79,7 +79,7 @@ int main(int argc,char **argv)
   double **series;
   unsigned long i,j;
   unsigned int n,bi[dim];
-  unsigned long **box;
+  unsigned long *box;
   FILE *fout=NULL;
 
   if (scan_help(argc,argv))
@@ -126,11 +126,10 @@ int main(int argc,char **argv)
     }
   }
 
-  check_alloc(box=(unsigned long**)malloc(sizeof(unsigned long*)*base));
-  for (i=0;i<base;i++) {
-    check_alloc(box[i]=(unsigned long*)malloc(sizeof(unsigned long)*base));
-    for (j=0;j<base;j++)
-      box[i][j]=1;
+  check_alloc(box=(unsigned long*)malloc(sizeof(unsigned long*)*pow(base,dim)));
+  for (i=0;i<pow(base,dim);i++)
+  {
+    box[i]=1;
   }
   base_1=(double)base;
   norm2=(double)(length+pow(base,dim));
@@ -139,11 +138,13 @@ int main(int argc,char **argv)
   }
 
   for (i=0;i<length;i++) {
+    j=0;
     for (n=0;n<dim;n++) {
       bi[n]=(unsigned int)(series[n][i]*base_1/interval[n]);
       bi[n]=(bi[n]>=base)? base-1:bi[n];
+      j+=bi[n]*pow(base,dim-1-n);
     }
-    box[bi[0]][bi[1]]++;
+    box[j]++;
   }
 
   if (!stout)
@@ -154,25 +155,29 @@ int main(int argc,char **argv)
   for (n=0;n<dim;n++) {
     interval[n] /= base_1;
   }
-  for (i=0;i<base;i++) {
-    for (j=0;j<base;j++) {
-      if (stout) {
-        fprintf(stdout,"%e %e ",
-                ((double)(i)+0.5)*interval[0]+min[0],
-                ((double)(j)+0.5)*interval[1]+min[1]);
-        fprintf(stdout,"%e\n",(double)box[i][j]/norm2);
+  for (i=0;i<pow(base,dim);i++) {
+    if (stout) {
+      for (n=0;n<dim;n++) {
+        fprintf(stdout,"%e ",
+                ((double)(((i)/(unsigned int)
+                    pow(base,dim-1-n))%base)+0.5)*interval[n]+min[n]);
       }
-      else {
-        fprintf(fout,"%e %e ",
-                ((double)(i)+0.5)*interval[0]+min[0],
-                ((double)(j)+0.5)*interval[1]+min[1]);
-        fprintf(fout,"%e\n",(double)box[i][j]/norm2);
-      }
+      fprintf(stdout,"%e\n",(double)box[i]/norm2);
     }
-    if (stout)
-      fprintf(stdout,"\n");
-    else
-      fprintf(fout,"\n");
+    else {
+      for (n=0;n<dim;n++) {
+        fprintf(fout,"%e ",
+                ((double)(((i)/(unsigned int)
+                    pow(base,dim-1-n))%base)+0.5)*interval[n]+min[n]);
+      }
+      fprintf(fout,"%e\n",(double)box[i]/norm2);
+    }
+    if (!((i+1)%base)) {
+      if (stout)
+        fprintf(stdout,"\n");
+      else
+        fprintf(fout,"\n");
+    }
   }
   if (!stout)
     fclose(fout);
@@ -181,8 +186,6 @@ int main(int argc,char **argv)
   if (outfile != NULL) free(outfile);
   if (infile != NULL) free(infile);
   if (columns != NULL) free(columns);
-  for (i=0;i<base;i++)
-    free(box[i]);
   free(box);
   for (n=0;n<dim;n++) {
     free(series[n]);
