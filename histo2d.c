@@ -1,6 +1,7 @@
 /*Author: Rainer Hegger. Last modified: May 20, 2014 */
 /*Changes by Bjoern Bastian:
     2014/05/21: option -r to set reference binning range
+    2014/07/07: option -F for relative frequencies
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +13,7 @@
 #include <math.h>
 #endif
 
-#define WID_STR "Creates a 2d-histogram of an bivariate time series [2014/05/21: option -r added]"
+#define WID_STR "Creates a 2d-histogram of an bivariate time series [2014/07/07: option -F added]"
 
 unsigned long length=ULONG_MAX;
 unsigned long minmaxlength=3;
@@ -21,6 +22,7 @@ char *column=NULL;
 unsigned int base=16;
 unsigned int verbosity=0xff;
 unsigned int stout=1;
+char density=1;
 char *outfile=NULL;
 char *infile=NULL;
 char *minmaxfile=NULL;
@@ -37,6 +39,8 @@ void show_options(char *progname)
   fprintf(stderr,"\t-x # of lines to ignore [default %ld]\n",exclude);
   fprintf(stderr,"\t-c columns to read [default 1,2]\n");
   fprintf(stderr,"\t-b # of intervals per dim [default %u]\n",base);
+  fprintf(stderr,"\t-F output relative frequencies not densities"
+	  " [default not set]\n");
   fprintf(stderr,"\t-r reference file for binning range [optional]\n");
   fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
           " If no -o is given: stdout]\n");
@@ -61,6 +65,8 @@ void scan_options(int n,char **argv)
     sscanf(out,"%u",&base);
   if ((out=check_option(argv,n,'V','u')) != NULL)
     sscanf(out,"%u",&verbosity);
+  if ((out=check_option(argv,n,'F','n')) != NULL)
+    density=0;
   if ((out=check_option(argv,n,'r','o')) != NULL) {
     if (strlen(out) > 0)
       minmaxfile=out;
@@ -213,8 +219,14 @@ int main(int argc,char **argv)
     for (j=negoffset[1];j<range[1];j++)
       box[i][j]=1;
   }
-  norm1=(double)(length+(range[0]-negoffset[0]))*sx;
-  norm2=(double)(length+(range[0]-negoffset[0])*(range[1]-negoffset[1]))*sx*sy;
+  if (density) {
+    norm1=(double)(length+(range[0]-negoffset[0]))*sx;
+    norm2=(double)(length+(range[0]-negoffset[0])*(range[1]-negoffset[1]))*sx*sy;
+  }
+  else {
+    norm1=(double)(length+(range[0]-negoffset[0]));
+    norm2=(double)(length+(range[0]-negoffset[0])*(range[1]-negoffset[1]));
+  }
 
   for (i=0;i<length;i++) {
     bi=(unsigned int)((series[0][i]-refmin[0])*base_1/refinterval[0]+offset[0]);
