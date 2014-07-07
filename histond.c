@@ -1,6 +1,7 @@
 /*Author: Rainer Hegger. Last modified: May 20, 2014 */
 /*Changes by Bjoern Bastian:
     2014/07/07: adapted version for n-dimensional histograms
+    2014/07/07: option -F for relative frequencies
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@ char *columns=NULL,dimset=0;
 unsigned int base=16;
 unsigned int verbosity=0xff;
 unsigned int stout=1;
+char density=1;
 char *outfile=NULL;
 char *infile=NULL;
 
@@ -37,6 +39,8 @@ void show_options(char *progname)
   fprintf(stderr,"\t-m # of components to be read [default %u]\n",dim);
   fprintf(stderr,"\t-c columns to read [default 1,2]\n");
   fprintf(stderr,"\t-b # of intervals per dim [default %u]\n",base);
+  fprintf(stderr,"\t-F output relative frequencies not densities"
+	  " [default not set]\n");
   fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
           " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
@@ -64,6 +68,8 @@ void scan_options(int n,char **argv)
     sscanf(out,"%u",&base);
   if ((out=check_option(argv,n,'V','u')) != NULL)
     sscanf(out,"%u",&verbosity);
+  if ((out=check_option(argv,n,'F','n')) != NULL)
+    density=0;
   if ((out=check_option(argv,n,'o','o')) != NULL) {
     stout=0;
     if (strlen(out) > 0)
@@ -133,8 +139,10 @@ int main(int argc,char **argv)
   }
   base_1=(double)base;
   norm2=(double)(length+pow(base,dim));
-  for (n=0;n<dim;n++) {
-    norm2*=(double)interval[n]/base_1;
+  if (density) {
+    for (n=0;n<dim;n++) {
+      norm2*=(double)interval[n]/base_1;
+    }
   }
 
   for (i=0;i<length;i++) {
