@@ -74,12 +74,12 @@ void scan_options(int n,char **argv)
 int main(int argc,char **argv)
 {
   char stdi=0;
-  double base_1,sx,sy,logmax,logout,norm1,norm2;
+  double base_1,sx,sy,norm2;
   double min[2],interval[2];
   double **series;
-  unsigned long i,j,lmax;
+  unsigned long i,j;
   unsigned int bi,bj;
-  unsigned long **box,*box1d;
+  unsigned long **box;
   FILE *fout=NULL;
 
   if (scan_help(argc,argv))
@@ -129,10 +129,6 @@ int main(int argc,char **argv)
     series[1][i]=(series[1][i]-min[1]);
   }
 
-  check_alloc(box1d=(unsigned long*)malloc(sizeof(unsigned long)*base));
-  for (i=0;i<base;i++)
-    box1d[i]=1;
-
   check_alloc(box=(unsigned long**)malloc(sizeof(unsigned long*)*base));
   for (i=0;i<base;i++) {
     check_alloc(box[i]=(unsigned long*)malloc(sizeof(unsigned long)*base));
@@ -142,7 +138,6 @@ int main(int argc,char **argv)
   base_1=(double)base;
   sx=interval[0]/base_1;
   sy=interval[1]/base_1;
-  norm1=(double)(length+base)*sx;
   norm2=(double)(length+base*base)*sx*sy;
 
   for (i=0;i<length;i++) {
@@ -151,15 +146,7 @@ int main(int argc,char **argv)
     bi=(bi>=base)? base-1:bi;
     bj=(bj>=base)? base-1:bj;
     box[bi][bj]++;
-    box1d[bi]++;
   }
-
-  lmax=0;
-  for (i=0;i<base;i++)
-    for (j=0;j<base;j++)
-      if (box[i][j] > 0)
-        lmax=(box[i][j]>lmax)? box[i][j]:lmax;
-  logmax=log((double)lmax/norm2);
 
   if (!stout)
     test_outfile(outfile);
@@ -170,18 +157,15 @@ int main(int argc,char **argv)
   interval[1] /= base_1;
   for (i=0;i<base;i++) {
     for (j=0;j<base;j++) {
-      logout=log((double)box[i][j]/norm2)-logmax;
       if (stout) {
-        fprintf(stdout,"%e %e %e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
+        fprintf(stdout,"%e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
                 ((double)(j)+0.5)*interval[1]+min[1],
-                (double)box[i][j]/norm2,
-                (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
+                (double)box[i][j]/norm2);
       }
       else {
-        fprintf(fout,"%e %e %e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
+        fprintf(fout,"%e %e %e\n",((double)(i)+0.5)*interval[0]+min[0],
                 ((double)(j)+0.5)*interval[1]+min[1],
-                (double)box[i][j]/norm2,
-                (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
+                (double)box[i][j]/norm2);
       }
     }
     if (stout)
@@ -196,7 +180,6 @@ int main(int argc,char **argv)
   if (outfile != NULL) free(outfile);
   if (infile != NULL) free(infile);
   if (columns != NULL) free(columns);
-  free(box1d);
   for (i=0;i<base;i++)
     free(box[i]);
   free(box);
