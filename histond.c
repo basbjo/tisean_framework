@@ -13,7 +13,7 @@
 #include <math.h>
 #endif
 
-#define WID_STR "Creates a n-d-histogram of an bivariate time series [2014/07/07: n-d-histogram]"
+#define WID_STR "Creates a n-d-histogram of a multivariate time series [2014/07/07: n-d-histogram]"
 
 unsigned long length=ULONG_MAX;
 unsigned long exclude=0;
