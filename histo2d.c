@@ -188,7 +188,7 @@ int main(int argc,char **argv)
     }
     else {
       offset[1]=0;
-      negoffset[1]=(long)((min[1]-refmin[1])/sx);
+      negoffset[1]=(long)((min[1]-refmin[1])/sy);
     }
     range[0]=(long)ceil((min[0]+interval[0]-refmin[0])/sx)+offset[0];
     range[1]=(long)ceil((min[1]+interval[1]-refmin[1])/sy)+offset[1];
