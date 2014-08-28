@@ -2,6 +2,7 @@
 /*Changes by Bjoern Bastian:
     2014/07/07: adapted version for n-dimensional histograms
     2014/07/07: option -F for relative frequencies
+    2014/08/28: print out intervals and binwidths as comment line
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +14,7 @@
 #include <math.h>
 #endif
 
-#define WID_STR "Creates a n-d-histogram of a multivariate time series [2014/07/07: n-d-histogram]"
+#define WID_STR "Creates a n-d-histogram of a multivariate time series [2014/08/28: n-d-histogram]"
 
 unsigned long length=ULONG_MAX;
 unsigned long exclude=0;
@@ -158,11 +159,44 @@ int main(int argc,char **argv)
   if (!stout)
     test_outfile(outfile);
 
+  /* print out intervals */
   fout=fopen(outfile,"w");
+  if (stout) {
+    fprintf(stdout,"#intervals: ");
+    for (n=0;n<dim;n++) {
+      fprintf(stdout,"%e ",interval[n]);
+    }
+    fprintf(stdout,"\n");
+  }
+  else {
+    fprintf(fout,"#intervals: ");
+    for (n=0;n<dim;n++) {
+      fprintf(fout,"%e ",interval[n]);
+    }
+    fprintf(fout,"\n");
+  }
 
   for (n=0;n<dim;n++) {
     interval[n] /= base_1;
   }
+  /* print out binwidths */
+  fout=fopen(outfile,"w");
+  if (stout) {
+    fprintf(stdout,"#binwidths: ");
+    for (n=0;n<dim;n++) {
+      fprintf(stdout,"%e ",interval[n]);
+    }
+    fprintf(stdout,"\n");
+  }
+  else {
+    fprintf(fout,"#intervals: ");
+    for (n=0;n<dim;n++) {
+      fprintf(fout,"%e ",interval[n]);
+    }
+    fprintf(fout,"\n");
+  }
+
+  /* print out histogram */
   for (i=0;i<pow(base,dim);i++) {
     if (stout) {
       for (n=0;n<dim;n++) {
