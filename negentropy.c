@@ -39,7 +39,7 @@ void show_options(char *progname)
   fprintf(stderr,"\t-c column selection [default 1,...,# of components]\n");
   fprintf(stderr,"\t-b # of intervals per dim [default %u]\n",base);
   fprintf(stderr,"\t-r reference file for binning range [optional]\n");
-  fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
+  fprintf(stderr,"\t-o output file [default 'datafile'.nen ;"
           " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
           "0='only panic messages'\n\t\t"
@@ -145,11 +145,11 @@ int main(int argc,char **argv)
   if (!stout && (outfile == NULL)) {
     if (!stdi) {
       check_alloc(outfile=calloc(strlen(infile)+5,(size_t)1));
-      sprintf(outfile,"%s.his",infile);
+      sprintf(outfile,"%s.nen",infile);
     }
     else {
       check_alloc(outfile=calloc((size_t)10,(size_t)1));
-      sprintf(outfile,"stdin.his");
+      sprintf(outfile,"stdin.nen");
     }
   }
 

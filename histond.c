@@ -42,7 +42,7 @@ void show_options(char *progname)
   fprintf(stderr,"\t-b # of intervals per dim [default %u]\n",base);
   fprintf(stderr,"\t-F output relative frequencies not densities"
 	  " [default not set]\n");
-  fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
+  fprintf(stderr,"\t-o output file [default 'datafile'.his ;"
           " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
           "0='only panic messages'\n\t\t"

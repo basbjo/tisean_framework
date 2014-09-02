@@ -57,7 +57,7 @@ void show_options(char *progname)
   fprintf(stderr,"\t-D output densities not relative frequencies"
 	  " [default not set]\n");
   fprintf(stderr,"\t-r reference file for binning range [optional]\n");
-  fprintf(stderr,"\t-o output file [default 'datafile'.dat ;"
+  fprintf(stderr,"\t-o output file [default 'datafile'.his ;"
 	  " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
           "0='only panic messages'\n\t\t"
