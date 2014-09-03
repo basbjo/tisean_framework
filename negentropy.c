@@ -17,7 +17,7 @@ unsigned long length=ULONG_MAX;
 unsigned int dim=1;
 unsigned long minmaxlength=3;
 unsigned long exclude=0;
-unsigned int base=50;
+unsigned int base=300;
 unsigned int verbosity=0xff;
 char *columns=NULL,dimset=0;
 unsigned int stout=1;
