@@ -92,6 +92,7 @@ void scan_options(int n,char **str)
 int main(int argc,char **argv)
 {
   char stdi=0;
+  int refcolumn;
   unsigned long i,j;
   unsigned int dummy=2;
   unsigned long offset,negoffset,range;
@@ -136,13 +137,18 @@ int main(int argc,char **argv)
       fprintf(stderr,"File %s not found!\n",minmaxfile);
       exit(HISTOGRAM__MINMAX_MISSING_OR_WRONG_FORMAT);
     }
-    int column=1;//FIXME
+    if (columns == NULL) {
+      refcolumn=1;
+    }
+    else {
+      sscanf(columns,"%d",&refcolumn);
+    }
     if (verbosity&VER_INPUT) {
       fprintf(stderr,"Get reference range from %s, reading column %u\n",
-          minmaxfile,column);
+          minmaxfile,refcolumn);
     }
 
-    minmax=(double*)get_series(minmaxfile,&minmaxlength,0,column,verbosity);
+    minmax=(double*)get_series(minmaxfile,&minmaxlength,0,refcolumn,verbosity);
     if(minmaxlength!=2) {
       fprintf(stderr,"Wrong format in file '%s'. Needs exactly two lines"
           " with minima and maxima for each column.\n",minmaxfile);
