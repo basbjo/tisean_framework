@@ -29,7 +29,7 @@
 #include <string.h>
 #include "routines/tsa.h"
 
-#define WID_STR "Bins a function f(x) in second column with respect to x values in first column"
+#define WID_STR "Averages second column with respect to binning of first column"
 
 unsigned long length=ULONG_MAX;
 unsigned long minmaxlength=3;
@@ -93,14 +93,14 @@ int main(int argc,char **argv)
 {
   char stdi=0;
   int refcolumn;
-  unsigned long i,j;
+  unsigned long i,j,N;
   unsigned int dummy=2;
   unsigned long offset,negoffset,range;
   double x,size;
   double min,interval,refmin,refinterval;
   double **series,*minmax;
   long *box;
-  double *bin;
+  double *sum,*sumsq;
   FILE *fout,*test;
 
   if (scan_help(argc,argv))
@@ -199,10 +199,12 @@ int main(int argc,char **argv)
   /*Binning*/
   if (range > 0) {
     check_alloc(box=(long*)malloc(sizeof(long)*range));
-    check_alloc(bin=(double*)malloc(sizeof(double)*range));
+    check_alloc(sum=(double*)malloc(sizeof(double)*range));
+    check_alloc(sumsq=(double*)malloc(sizeof(double)*range));
     for (i=negoffset;i<range;i++) {
       box[i]=0;
-      bin[i]=0.0;
+      sum[i]=0.0;
+      sumsq[i]=0.0;
     }
     for (i=0;i<length;i++) {
       j=(long)((series[0][i]-refmin)*base/refinterval+offset);
@@ -210,7 +212,8 @@ int main(int argc,char **argv)
         j=range-1;
       }
       box[j]++;
-      bin[j]+=series[1][i];
+      sum[j]+=series[1][i];
+      sumsq[j]+=pow(series[1][i],2);
     }
   }
 
@@ -218,14 +221,22 @@ int main(int argc,char **argv)
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Opened %s for writing\n",outfile);
-    fprintf(fout,"#interval of data: [%e:%e]\n",min,min+interval);
+    fprintf(fout,"#binning range: [%e:%e]\n",min,min+interval);
+    fprintf(fout,"#bin_center mean stddev_of_mean n_bin_entries\n");
     for (i=negoffset;i<range;i++) {
       x=(double)(i*size-offset*size);
-      if(box[i]>0) {
-        fprintf(fout,"%e %e\n",(x+size/2.0)+refmin,bin[i]/(double)box[i]);
+      N=box[i];
+      if(N>0) {
+        fprintf(fout,"%e %e",(x+size/2.0)+refmin,sum[i]/N);
+        if(N>1) {
+          fprintf(fout," %e %ld\n",pow((sumsq[i]-pow(sum[i],2)/N)/(N-1)/N,0.5),N);
+        }
+        else {
+          fprintf(fout," nan %ld\n",N);
+        }
       }
       else {
-        fprintf(fout,"%e %s\n",(x+size/2.0)+refmin,"nan");
+        fprintf(fout,"%e %s %s %ld\n",(x+size/2.0)+refmin,"nan","nan",N);
       }
     }
     fclose(fout);
@@ -233,14 +244,22 @@ int main(int argc,char **argv)
   else {
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
-    fprintf(stdout,"#interval of data: [%e:%e]\n",min,min+interval);
+    fprintf(stdout,"#binning range: [%e:%e]\n",min,min+interval);
+    fprintf(stdout,"#bin_center mean stddev_of_mean n_bin_entries\n");
     for (i=negoffset;i<range;i++) {
       x=(double)(i*size-offset*size);
-      if(box[i]>0) {
-        fprintf(stdout,"%e %e\n",(x+size/2.0)+refmin,bin[i]/(double)box[i]);
+      N=box[i];
+      if(N>0) {
+        fprintf(stdout,"%e %e",(x+size/2.0)+refmin,sum[i]/N);
+        if(N>1) {
+          fprintf(stdout," %e %ld\n",pow((sumsq[i]-pow(sum[i],2)/N)/(N-1)/N,0.5),N);
+        }
+        else {
+          fprintf(stdout," nan %ld\n",N);
+        }
       }
       else {
-        fprintf(stdout,"%e %s\n",(x+size/2.0)+refmin,"nan");
+        fprintf(stdout,"%e %s %s %ld\n",(x+size/2.0)+refmin,"nan","nan",N);
       }
       fflush(stdout);
     }
