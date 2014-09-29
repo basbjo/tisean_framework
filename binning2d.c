@@ -1,7 +1,6 @@
 /*Author: Rainer Hegger. Last modified: May 20, 2014 */
 /*Changes by Bjoern Bastian:
-    2014/05/21: option -r to set reference binning range
-    2014/07/07: option -F for relative frequencies
+    2014/09/29: fork for binning instead of histogram creation
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,16 +12,15 @@
 #include <math.h>
 #endif
 
-#define WID_STR "Creates a 2d-histogram of an bivariate time series [2014/07/07: option -F added]"
+#define WID_STR "Averages third column with respect to binning of the first columns"
 
 unsigned long length=ULONG_MAX;
 unsigned long minmaxlength=3;
 unsigned long exclude=0;
-char *column=NULL;
+char *columns=NULL;
 unsigned int base=16;
 unsigned int verbosity=0xff;
 unsigned int stout=1;
-char density=1;
 char *outfile=NULL;
 char *infile=NULL;
 char *minmaxfile=NULL;
@@ -37,12 +35,10 @@ void show_options(char *progname)
           " Just - also means stdin\n");
   fprintf(stderr,"\t-l length of file [default whole file]\n");
   fprintf(stderr,"\t-x # of lines to ignore [default %ld]\n",exclude);
-  fprintf(stderr,"\t-c columns to read [default 1,2]\n");
+  fprintf(stderr,"\t-c columns to read [default 1,2,3]\n");
   fprintf(stderr,"\t-b # of intervals per dim [default %u]\n",base);
-  fprintf(stderr,"\t-F output relative frequencies not densities"
-	  " [default not set]\n");
   fprintf(stderr,"\t-r reference file for binning range [optional]\n");
-  fprintf(stderr,"\t-o output file [default 'datafile'.his ;"
+  fprintf(stderr,"\t-o output file [default 'datafile'.bins ;"
           " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
           "0='only panic messages'\n\t\t"
@@ -60,13 +56,11 @@ void scan_options(int n,char **argv)
   if ((out=check_option(argv,n,'x','u')) != NULL)
     sscanf(out,"%lu",&exclude);
   if ((out=check_option(argv,n,'c','s')) != NULL)
-    column=out;
+    columns=out;
   if ((out=check_option(argv,n,'b','u')) != NULL)
     sscanf(out,"%u",&base);
   if ((out=check_option(argv,n,'V','u')) != NULL)
     sscanf(out,"%u",&verbosity);
-  if ((out=check_option(argv,n,'F','n')) != NULL)
-    density=0;
   if ((out=check_option(argv,n,'r','o')) != NULL) {
     if (strlen(out) > 0)
       minmaxfile=out;
@@ -80,16 +74,17 @@ void scan_options(int n,char **argv)
 
 int main(int argc,char **argv)
 {
-  unsigned int dim=2;
+  unsigned int dim=3;
   unsigned long offset[2],negoffset[2],range[2];
   char stdi=0;
-  char *col=NULL;
-  double base_1,sx,sy,logmax,logout,norm1,norm2;
+  char *cols=NULL;
+  double base_1,sx,sy;
   double min[2],interval[2],refmin[2],refinterval[2];
   double **series,**minmax;
-  unsigned long i,j,lmax;
+  unsigned long i,j,N;
   unsigned int bi,bj;
-  unsigned long **box,*box1d;
+  unsigned long **box;
+  double **sum,**sumsq;
   FILE *fout=NULL,*test=NULL;
 
   if (scan_help(argc,argv))
@@ -112,14 +107,14 @@ int main(int argc,char **argv)
       fprintf(stderr,"Get reference range from file %s\n",minmaxfile);
     }
 
-    if (column == NULL) {
+    if (columns == NULL) {
       minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,"",1,
                                         verbosity);
     }
     else {
-      check_alloc(col=calloc(strlen(column),(size_t)1));
-      strcpy(col,column);
-      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,col,
+      check_alloc(cols=calloc(strlen(columns),(size_t)1));
+      strcpy(cols,columns);
+      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,cols,
                                         1,verbosity);
     }
 
@@ -142,19 +137,19 @@ int main(int argc,char **argv)
   if (!stout && (outfile == NULL)) {
     if (!stdi) {
       check_alloc(outfile=calloc(strlen(infile)+5,(size_t)1));
-      sprintf(outfile,"%s.his",infile);
+      sprintf(outfile,"%s.bins",infile);
     }
     else {
       check_alloc(outfile=calloc((size_t)10,(size_t)1));
-      sprintf(outfile,"stdin.his");
+      sprintf(outfile,"stdin.bins");
     }
   }
 
-  if (column == NULL)
+  if (columns == NULL)
     series=(double**)get_multi_series(infile,&length,exclude,&dim,"",1,
                                       verbosity);
   else
-    series=(double**)get_multi_series(infile,&length,exclude,&dim,column,
+    series=(double**)get_multi_series(infile,&length,exclude,&dim,columns,
                                       1,verbosity);
 
   /*Get data minima and intervals*/
@@ -209,23 +204,18 @@ int main(int argc,char **argv)
   }
 
   /*Binning*/
-  check_alloc(box1d=(unsigned long*)malloc(sizeof(unsigned long)*range[0]));
-  for (i=negoffset[0];i<range[0];i++)
-    box1d[i]=1;
-
   check_alloc(box=(unsigned long**)malloc(sizeof(unsigned long*)*range[0]));
+  check_alloc(sum=(double**)malloc(sizeof(double*)*range[0]));
+  check_alloc(sumsq=(double**)malloc(sizeof(double*)*range[0]));
   for (i=negoffset[0];i<range[0];i++) {
     check_alloc(box[i]=(unsigned long*)malloc(sizeof(unsigned long)*range[1]));
-    for (j=negoffset[1];j<range[1];j++)
-      box[i][j]=1;
-  }
-  if (density) {
-    norm1=(double)(length+(range[0]-negoffset[0]))*sx;
-    norm2=(double)(length+(range[0]-negoffset[0])*(range[1]-negoffset[1]))*sx*sy;
-  }
-  else {
-    norm1=(double)(length+(range[0]-negoffset[0]));
-    norm2=(double)(length+(range[0]-negoffset[0])*(range[1]-negoffset[1]));
+    check_alloc(sum[i]=(double*)malloc(sizeof(double)*range[1]));
+    check_alloc(sumsq[i]=(double*)malloc(sizeof(double)*range[1]));
+    for (j=negoffset[1];j<range[1];j++) {
+      box[i][j]=0;
+      sum[i][j]=0.0;
+      sumsq[i][j]=0.0;
+    }
   }
 
   for (i=0;i<length;i++) {
@@ -234,35 +224,60 @@ int main(int argc,char **argv)
     bi=(bi>=range[0])? range[0]-1:bi;
     bj=(bj>=range[1])? range[1]-1:bj;
     box[bi][bj]++;
-    box1d[bi]++;
+    sum[bi][bj]+=series[2][i];
+    sumsq[bi][bj]+=pow(series[2][i],2);
   }
-
-  lmax=0;
-  for (i=negoffset[0];i<range[0];i++)
-    for (j=negoffset[1];j<range[1];j++)
-      if (box[i][j] > 0)
-        lmax=(box[i][j]>lmax)? box[i][j]:lmax;
-  logmax=log((double)lmax/norm2);
 
   if (!stout)
     test_outfile(outfile);
 
   fout=fopen(outfile,"w");
 
+  if (stout) {
+    fprintf(stdout,"#binning ranges: [%e:%e][%e:%e]\n",min[0],
+        min[0]+interval[0],min[1],min[1]+interval[1]);
+    fprintf(stdout,"#bin_center_x bin_center_y mean stddev_of_mean n_bin_entries\n");
+  }
+  else {
+    fprintf(fout,"#binning ranges: [%e:%e][%e:%e]\n",min[0],
+        min[0]+interval[0],min[1],min[1]+interval[1]);
+    fprintf(fout,"#bin_center_x bin_center_y mean stddev_of_mean n_bin_entries\n");
+  }
+
   for (i=negoffset[0];i<range[0];i++) {
     for (j=negoffset[1];j<range[1];j++) {
-      logout=log((double)box[i][j]/norm2)-logmax;
+      N=box[i][j];
       if (stout) {
-        fprintf(stdout,"%e %e %e %e %e\n",((double)(i)-offset[0]+0.5)*sx+refmin[0],
-                ((double)(j)-offset[1]+0.5)*sy+refmin[1],
-                (double)box[i][j]/norm2,
-                (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
+        if (N>0) {
+          fprintf(stdout,"%e %e %e",((double)(i)-offset[0]+0.5)*sx+refmin[0],
+              ((double)(j)-offset[1]+0.5)*sy+refmin[1],sum[i][j]/N);
+          if (N>1) {
+            fprintf(stdout," %e %ld\n",pow((sumsq[i][j]-pow(sum[i][j],2)/N)/(N-1)/N,0.5),N);
+          }
+          else {
+            fprintf(stdout," nan %ld\n",N);
+          }
+        }
+        else {
+          fprintf(stdout,"%e %e %s %s %ld\n",((double)(i)-offset[0]+0.5)*sx+refmin[0],
+              ((double)(j)-offset[1]+0.5)*sy+refmin[1],"nan","nan",N);
+        }
       }
       else {
-        fprintf(fout,"%e %e %e %e %e\n",((double)(i)-offset[0]+0.5)*sx+refmin[0],
-                ((double)(j)-offset[1]+0.5)*sy+refmin[1],
-                (double)box[i][j]/norm2,
-                (double)box[i][j]/(double)box1d[i]/norm2*norm1,-logout);
+        if (N>0) {
+          fprintf(fout,"%e %e %e",((double)(i)-offset[0]+0.5)*sx+refmin[0],
+              ((double)(j)-offset[1]+0.5)*sy+refmin[1],sum[i][j]/N);
+          if (N>1) {
+            fprintf(fout," %e %ld\n",pow((sumsq[i][j]-pow(sum[i][j],2)/N)/(N-1)/N,0.5),N);
+          }
+          else {
+            fprintf(fout," nan %ld\n",N);
+          }
+        }
+        else {
+          fprintf(fout,"%e %e %s %s %ld\n",((double)(i)-offset[0]+0.5)*sx+refmin[0],
+              ((double)(j)-offset[1]+0.5)*sy+refmin[1],"nan","nan",N);
+        }
       }
     }
     if (stout)
@@ -277,11 +292,15 @@ int main(int argc,char **argv)
   if (outfile != NULL) free(outfile);
   if (infile != NULL) free(infile);
   if (minmaxfile != NULL) free(minmaxfile);
-  if (column != NULL) free(column);
-  free(box1d);
-  for (i=negoffset[0];i<range[0];i++)
+  if (columns != NULL) free(columns);
+  for (i=negoffset[0];i<range[0];i++) {
     free(box[i]);
+    free(sum[i]);
+    free(sumsq[i]);
+  }
   free(box);
+  free(sum);
+  free(sumsq);
   free(series[0]);
   free(series[1]);
   free(series);
