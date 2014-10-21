@@ -145,7 +145,7 @@ int main(int argc,char **argv)
     }
 
     minmax=(double*)get_series(minmaxfile,&minmaxlength,0,column,verbosity);
-    if(minmaxlength!=2) {
+    if (minmaxlength != 2) {
       fprintf(stderr,"Wrong format in file '%s'. Needs exactly two lines"
           " with minima and maxima for each column.\n",minmaxfile);
       exit(HISTOGRAM__MINMAX_MISSING_OR_WRONG_FORMAT);
@@ -211,7 +211,9 @@ int main(int argc,char **argv)
     fout=fopen(outfile,"w");
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Opened %s for writing\n",outfile);
-    fprintf(fout,"#interval of data: [%e:%e]\n",min,min+interval);
+    fprintf(fout,"#interval of data:   [%e:%e]\n",min,min+interval);
+    if (minmaxfile != NULL)
+      fprintf(fout,"#reference interval: [%e:%e]\n",refmin,refmin+refinterval);
     fprintf(fout,"#average= %e\n",average);
     fprintf(fout,"#standard deviation= %e\n",var);
     for (i=negoffset;i<range;i++) {
@@ -223,7 +225,9 @@ int main(int argc,char **argv)
   else {
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
-    fprintf(stdout,"#interval of data: [%e:%e]\n",min,min+interval);
+    fprintf(stdout,"#interval of data:   [%e:%e]\n",min,min+interval);
+    if (minmaxfile != NULL)
+      fprintf(stdout,"#reference interval: [%e:%e]\n",refmin,refmin+refinterval);
     fprintf(stdout,"#average= %e\n",average);
     fprintf(stdout,"#standard deviation= %e\n",var);
     for (i=negoffset;i<range;i++) {
