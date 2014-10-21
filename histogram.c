@@ -19,7 +19,10 @@
  */
 /*Author: Rainer Hegger. Last modified May 16, 2014*/
 /*Changes by Bjoern Bastian:
-    2014/05/16: option -r to set reference binning range
+    2014/05/16: option -r to set reference binning range by minmax file
+    2014/10/21: option -R to set reference binning range and output range
+    2014/10/21: option -s to set reference binning range by argument
+    2014/10/21: option -S to set reference binning range and output range
 */
 
 #include <math.h>
@@ -40,7 +43,7 @@ unsigned int verbosity=0xff;
 char my_stdout=1,gotsize=0,density=0,cropoutput=0;
 char *outfile=NULL;
 char *infile=NULL;
-char *minmaxfile=NULL;
+char *minmaxfile=NULL,*minmaxstring=NULL;
 
 void show_options(char *progname)
 {
@@ -60,6 +63,8 @@ void show_options(char *progname)
 	  " [default not set]\n");
   fprintf(stderr,"\t-r minmax file to set reference range with # of intervals [optional]\n");
   fprintf(stderr,"\t-R minmax file to set reference range and resctrict output [optional]\n");
+  fprintf(stderr,"\t-s num,num to set reference range with # of intervals [optional]\n");
+  fprintf(stderr,"\t-S num,num to set reference range and resctrict output [optional]\n");
   fprintf(stderr,"\t-o output file [default 'datafile'.his ;"
 	  " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
@@ -95,6 +100,16 @@ void scan_options(int n,char **str)
       cropoutput=1;
     }
   }
+  if ((out=check_option(str,n,'s','o')) != NULL) {
+    if (strlen(out) > 0)
+      minmaxstring=out;
+  }
+  if ((out=check_option(str,n,'S','o')) != NULL) {
+    if (strlen(out) > 0) {
+      minmaxstring=out;
+      cropoutput=1;
+    }
+  }
   if ((out=check_option(str,n,'o','o')) != NULL) {
     my_stdout=0;
     if (strlen(out) > 0)
@@ -109,7 +124,7 @@ int main(int argc,char **argv)
   unsigned long offset,negoffset,range;
   double x,norm,size;
   double min,interval,refmin,refinterval;
-  double *series,*minmax;
+  double *series,*minmax=NULL;
   double average,var;
   long *box;
   FILE *fout,*test;
@@ -141,7 +156,7 @@ int main(int argc,char **argv)
   if (!my_stdout)
     test_outfile(outfile);
 
-  /*Get reference range for option '-r'*/
+  /*Get reference range for options '-r' and '-R'*/
   if (minmaxfile != NULL) {
     test=fopen(minmaxfile,"r");
     if (test == NULL) {
@@ -163,6 +178,16 @@ int main(int argc,char **argv)
     refinterval=minmax[1]-refmin;
   }
 
+  /*Get reference range for options '-s' and '-S'*/
+  if (minmaxstring != NULL) {
+    if (minmax == NULL) {
+      check_alloc(minmax=(double*)malloc(sizeof(double)*2));
+    }
+    sscanf(minmaxstring,"%lf,%lf",&minmax[0],&minmax[1]);
+    refmin=minmax[0];
+    refinterval=minmax[1]-refmin;
+  }
+
   /*Read data*/
   series=(double*)get_series(infile,&length,exclude,column,verbosity);
   variance(series,length,&average,&var);
@@ -176,7 +201,7 @@ int main(int argc,char **argv)
   interval -= min;
 
   /*Settings*/
-  if (minmaxfile != NULL) {
+  if (minmaxfile != NULL || minmaxstring != NULL) {
     size=refinterval/base;
     if (refmin > min) {
       offset=(long)((refmin-min)/size);
@@ -231,7 +256,7 @@ int main(int argc,char **argv)
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Opened %s for writing\n",outfile);
     fprintf(fout,"#interval of data:   [%e:%e]\n",min,min+interval);
-    if (minmaxfile != NULL)
+    if (minmaxfile != NULL || minmaxstring != NULL)
       fprintf(fout,"#reference interval: [%e:%e]\n",refmin,refmin+refinterval);
     fprintf(fout,"#average= %e\n",average);
     fprintf(fout,"#standard deviation= %e\n",var);
@@ -245,7 +270,7 @@ int main(int argc,char **argv)
     if (verbosity&VER_INPUT)
       fprintf(stderr,"Writing to stdout\n");
     fprintf(stdout,"#interval of data:   [%e:%e]\n",min,min+interval);
-    if (minmaxfile != NULL)
+    if (minmaxfile != NULL || minmaxstring != NULL)
       fprintf(stdout,"#reference interval: [%e:%e]\n",refmin,refmin+refinterval);
     fprintf(stdout,"#average= %e\n",average);
     fprintf(stdout,"#standard deviation= %e\n",var);
