@@ -37,7 +37,7 @@ unsigned long base=50;
 unsigned long exclude=0;
 unsigned int column=1;
 unsigned int verbosity=0xff;
-char my_stdout=1,gotsize=0,density=0;
+char my_stdout=1,gotsize=0,density=0,cropoutput=0;
 char *outfile=NULL;
 char *infile=NULL;
 char *minmaxfile=NULL;
@@ -56,7 +56,8 @@ void show_options(char *progname)
   fprintf(stderr,"\t-b # of intervals [default %ld]\n",base);
   fprintf(stderr,"\t-D output densities not relative frequencies"
 	  " [default not set]\n");
-  fprintf(stderr,"\t-r reference file for binning range [optional]\n");
+  fprintf(stderr,"\t-r reference file to set reference range [optional]\n");
+  fprintf(stderr,"\t-R reference file to resctrict binning range [optional]\n");
   fprintf(stderr,"\t-o output file [default 'datafile'.his ;"
 	  " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
@@ -85,6 +86,12 @@ void scan_options(int n,char **str)
   if ((out=check_option(str,n,'r','o')) != NULL) {
     if (strlen(out) > 0)
       minmaxfile=out;
+  }
+  if ((out=check_option(str,n,'R','o')) != NULL) {
+    if (strlen(out) > 0) {
+      minmaxfile=out;
+      cropoutput=1;
+    }
   }
   if ((out=check_option(str,n,'o','o')) != NULL) {
     my_stdout=0;
@@ -171,13 +178,21 @@ int main(int argc,char **argv)
     size=refinterval/base;
     if (refmin > min) {
       offset=(long)((refmin-min)/size);
-      negoffset=0;
+      if (!cropoutput) {
+        negoffset=0;
+      }
+      else {
+        negoffset=(long)((refmin-min)/size);
+      }
     }
     else {
       offset=0;
       negoffset=(long)((min-refmin)/size);
     }
     range=(long)((min+interval-refmin)/size)+offset;
+    if (cropoutput && ((min+interval) > (refmin+refinterval))) {
+      range-=((long)((min+interval-refmin-refinterval)/size));
+    }
   }
   else {
     refmin=min;
@@ -195,8 +210,10 @@ int main(int argc,char **argv)
       box[i]=0;
     for (i=0;i<length;i++) {
       j=(long)((series[i]-refmin)*base/refinterval+offset);
-      if (j >= range) {
-        j=range-1;
+      if ((!cropoutput) || ((long)(min+interval-refmin-refinterval) == 0)) {
+        if (j >= range) {
+          j=range-1;
+        }
       }
       box[j]++;
     }
