@@ -49,15 +49,17 @@ void show_options(char *progname)
   fprintf(stderr," options:\n");
   fprintf(stderr,"Everything not being a valid option will be interpreted as a"
 	  " possible datafile.\nIf no datafile is given stdin is read. "
-	  " Just - also means stdin\n");
+	  " Just - also means stdin.\n");
+  fprintf(stderr,"A minmax file contains column wise minima and maxima on the"
+          " first and second row.\n");
   fprintf(stderr,"\t-l length of file [default whole file]\n");
   fprintf(stderr,"\t-x # of lines to ignore [default %ld]\n",exclude);
   fprintf(stderr,"\t-c column to read [default %d]\n",column);
   fprintf(stderr,"\t-b # of intervals [default %ld]\n",base);
   fprintf(stderr,"\t-D output densities not relative frequencies"
 	  " [default not set]\n");
-  fprintf(stderr,"\t-r reference file to set reference range [optional]\n");
-  fprintf(stderr,"\t-R reference file to resctrict binning range [optional]\n");
+  fprintf(stderr,"\t-r minmax file to set reference range with # of intervals [optional]\n");
+  fprintf(stderr,"\t-R minmax file to set reference range and resctrict output [optional]\n");
   fprintf(stderr,"\t-o output file [default 'datafile'.his ;"
 	  " If no -o is given: stdout]\n");
   fprintf(stderr,"\t-V verbosity level [default 1]\n\t\t"
