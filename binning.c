@@ -119,7 +119,7 @@ int main(int argc,char **argv)
   int refcolumn;
   unsigned long i,j,N;
   unsigned int dummy=2;
-  unsigned long offset,negoffset,range;
+  unsigned long offset,negoffset,range,fullrange;
   double x,size;
   double min,interval,refmin,refinterval;
   double **series,*minmax=NULL;
@@ -225,6 +225,7 @@ int main(int argc,char **argv)
       negoffset=(long)((min-refmin)/size);
     }
     range=(long)((min+interval-refmin)/size)+offset;
+    fullrange=range;
     if (cropoutput && ((min+interval) > (refmin+refinterval))) {
       range-=((long)((min+interval-refmin-refinterval)/size));
     }
@@ -236,13 +237,14 @@ int main(int argc,char **argv)
     offset=0;
     negoffset=0;
     range=base;
+    fullrange=range;
   }
 
   /*Binning*/
   if (range > 0) {
-    check_alloc(box=(long*)malloc(sizeof(long)*range));
-    check_alloc(sum=(double*)malloc(sizeof(double)*range));
-    check_alloc(sumsq=(double*)malloc(sizeof(double)*range));
+    check_alloc(box=(long*)malloc(sizeof(long)*fullrange));
+    check_alloc(sum=(double*)malloc(sizeof(double)*fullrange));
+    check_alloc(sumsq=(double*)malloc(sizeof(double)*fullrange));
     for (i=negoffset;i<range;i++) {
       box[i]=0;
       sum[i]=0.0;
