@@ -121,7 +121,7 @@ int main(int argc,char **argv)
 {
   char stdi=0;
   unsigned long i,j;
-  unsigned long offset,negoffset,range;
+  unsigned long offset,negoffset,range,fullrange;
   double x,norm,size;
   double min,interval,refmin,refinterval;
   double *series,*minmax=NULL;
@@ -217,6 +217,7 @@ int main(int argc,char **argv)
       negoffset=(long)((min-refmin)/size);
     }
     range=(long)((min+interval-refmin)/size)+offset;
+    fullrange=range;
     if (cropoutput && ((min+interval) > (refmin+refinterval))) {
       range-=((long)((min+interval-refmin-refinterval)/size));
     }
@@ -228,11 +229,12 @@ int main(int argc,char **argv)
     offset=0;
     negoffset=0;
     range=base;
+    fullrange=range;
   }
 
   /*Binning*/
   if (range > 0) {
-    check_alloc(box=(long*)malloc(sizeof(long)*range));
+    check_alloc(box=(long*)malloc(sizeof(long)*fullrange));
     for (i=negoffset;i<range;i++)
       box[i]=0;
     for (i=0;i<length;i++) {
