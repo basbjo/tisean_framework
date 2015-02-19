@@ -225,7 +225,7 @@ int main(int argc,char **argv)
       negoffset=(long)((min-refmin)/size);
     }
     range=(long)((min+interval-refmin)/size)+offset;
-    fullrange=range;
+    fullrange=range+cropoutput;
     if (cropoutput && ((min+interval) > (refmin+refinterval))) {
       range-=((long)((min+interval-refmin-refinterval)/size));
     }
