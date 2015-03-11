@@ -31,16 +31,20 @@
 extern void check_alloc(void*);
 
 double **get_multi_series(char *name,unsigned long *l,unsigned long ex,
-			  unsigned int *col,char *which,char colfix,
+			  unsigned int *col,char *in_which,char colfix,
 			  unsigned int verbosity)
 {
-  char *input,**format;
+  char *input,**format,*which;
   int i,j;
   unsigned int *hcol,maxcol=0,colcount=0;
   unsigned long count,max_size=SIZE_STEP,hl,allcount;
   int input_size=INPUT_SIZE;
   double **x;
   FILE *fin;
+
+  check_alloc(which=(char*)malloc(sizeof(char)*strlen(in_which)));
+  for (i=0;i<=strlen(in_which);i++)
+    which[i]=in_which[i];
 
   if (strlen(which) > 0) {
     colcount=1;
