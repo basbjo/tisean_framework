@@ -80,7 +80,6 @@ void scan_options(int n,char **argv)
 int main(int argc,char **argv)
 {
   char stdi=0;
-  char *cols=NULL;
   unsigned long i,j,k;
   unsigned long *offset,*negoffset,*range;
   double entropygauss;
@@ -120,9 +119,7 @@ int main(int argc,char **argv)
                                           dimset,verbosity);
     }
     else {
-      check_alloc(cols=calloc(strlen(columns),(size_t)1));
-      strcpy(cols,columns);
-      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,cols,
+      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,columns,
                                         dimset,verbosity);
     }
 
