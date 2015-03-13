@@ -83,7 +83,6 @@ int main(int argc,char **argv)
   unsigned int dim=2;
   unsigned long offset[2],negoffset[2],range[2];
   char stdi=0;
-  char *col=NULL;
   double base_1,sx,sy,logmax,logout,norm1,norm2;
   double min[2],interval[2],refmin[2],refinterval[2];
   double **series,**minmax;
@@ -117,9 +116,7 @@ int main(int argc,char **argv)
                                         verbosity);
     }
     else {
-      check_alloc(col=calloc(strlen(column),(size_t)1));
-      strcpy(col,column);
-      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,col,
+      minmax=(double**)get_multi_series(minmaxfile,&minmaxlength,0,&dim,column,
                                         1,verbosity);
     }
 
