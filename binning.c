@@ -225,6 +225,10 @@ int main(int argc,char **argv)
       negoffset=(long)((min-refmin)/size);
     }
     range=(long)((min+interval-refmin)/size)+offset;
+    if ((min+interval) >= ((range-offset)*size+refmin)
+        && ((min+interval-refmin-refinterval) != 0.0)) {
+      range++;
+    }
     fullrange=range+cropoutput;
     if (cropoutput && ((min+interval) > (refmin+refinterval))) {
       range-=((long)((min+interval-refmin-refinterval)/size));
@@ -252,7 +256,7 @@ int main(int argc,char **argv)
     }
     for (i=0;i<length;i++) {
       j=(long)((series[0][i]-refmin)*base/refinterval+offset);
-      if ((!cropoutput) || ((min+interval-refmin-refinterval) == 0.0)) {
+      if ((min+interval-refmin-refinterval) == 0.0) {
         if (j == range) {
           j=range-1;
         }
