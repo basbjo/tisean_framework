@@ -240,8 +240,8 @@ int main(int argc,char **argv)
     }
     for (i=0;i<length;i++) {
       j=(long)((series[i]-refmin)*base/refinterval+offset);
-      if ((!cropoutput) || ((long)(min+interval-refmin-refinterval) == 0)) {
-        if ((j >= range) && (j < range+1)) {
+      if ((!cropoutput) || ((min+interval-refmin-refinterval) == 0.0)) {
+        if (j == range) {
           j=range-1;
         }
       }
