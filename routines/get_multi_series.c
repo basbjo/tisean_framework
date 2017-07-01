@@ -45,7 +45,7 @@ double **get_multi_series(char *name,unsigned long *l,unsigned long ex,
   check_alloc(which=(char*)malloc(sizeof(char)*strlen(in_which)));
   for (i=0;i<=strlen(in_which);i++)
     which[i]=in_which[i];
-  
+
   if (strlen(which) > 0) {
     colcount=1;
     for (i=0;i<strlen(which)-1;i++) {
@@ -188,7 +188,6 @@ double **get_multi_series(char *name,unsigned long *l,unsigned long ex,
   if (max_size > count)
     for (i=0;i< *col;i++) 
       check_alloc(x[i]=(double*)realloc(x[i],sizeof(double)*count));
-
   
   return x;
 }
