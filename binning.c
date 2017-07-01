@@ -142,12 +142,12 @@ int main(int argc,char **argv)
 
   if (outfile == NULL) {
     if (!stdi) {
-      check_alloc(outfile=(char*)calloc(strlen(infile)+5,1));
+      check_alloc(outfile=(char*)calloc(strlen(infile)+6,1));
       strcpy(outfile,infile);
       strcat(outfile,".bins");
     }
     else {
-      check_alloc(outfile=(char*)calloc((size_t)10,1));
+      check_alloc(outfile=(char*)calloc((size_t)11,1));
       strcpy(outfile,"stdin.bins");
     }
   }

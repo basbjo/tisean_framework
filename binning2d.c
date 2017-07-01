@@ -133,11 +133,11 @@ int main(int argc,char **argv)
 
   if (!stout && (outfile == NULL)) {
     if (!stdi) {
-      check_alloc(outfile=calloc(strlen(infile)+5,(size_t)1));
+      check_alloc(outfile=calloc(strlen(infile)+6,(size_t)1));
       sprintf(outfile,"%s.bins",infile);
     }
     else {
-      check_alloc(outfile=calloc((size_t)10,(size_t)1));
+      check_alloc(outfile=calloc((size_t)11,(size_t)1));
       sprintf(outfile,"stdin.bins");
     }
   }
