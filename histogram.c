@@ -40,7 +40,7 @@ unsigned long base=50;
 unsigned long exclude=0;
 unsigned int column=1;
 unsigned int verbosity=0xff;
-char my_stdout=1,gotsize=0,density=0,cropoutput=0;
+char my_stdout=1,gotsize=0,density=0,counts=0,cropoutput=0;
 char *outfile=NULL;
 char *infile=NULL;
 char *minmaxfile=NULL,*minmaxstring=NULL;
@@ -60,6 +60,8 @@ void show_options(char *progname)
   fprintf(stderr,"\t-c column to read [default %d]\n",column);
   fprintf(stderr,"\t-b # of intervals [default %ld]\n",base);
   fprintf(stderr,"\t-D output densities not relative frequencies"
+	  " [default not set]\n");
+  fprintf(stderr,"\t-C output counts not relative frequencies"
 	  " [default not set]\n");
   fprintf(stderr,"\t-r minmax file to set reference range with # of intervals [optional]\n");
   fprintf(stderr,"\t-R minmax file to set reference range and resctrict output [optional]\n");
@@ -90,6 +92,8 @@ void scan_options(int n,char **str)
     sscanf(out,"%u",&verbosity);
   if ((out=check_option(str,n,'D','n')) != NULL)
     density=1;
+  if ((out=check_option(str,n,'C','n')) != NULL)
+    counts=1;
   if ((out=check_option(str,n,'r','o')) != NULL) {
     if (strlen(out) > 0)
       minmaxfile=out;
@@ -253,10 +257,13 @@ int main(int argc,char **argv)
     }
   }
 
-  if (!density)
-    norm=1.0/(double)length;
+  if (counts)
+    norm=1.0;
   else
-    norm=1.0/(double)length/size;
+    if (!density)
+      norm=1.0/(double)length;
+    else
+      norm=1.0/(double)length/size;
 
   if (!my_stdout) {
     fout=fopen(outfile,"w");
